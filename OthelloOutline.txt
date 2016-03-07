@@ -1,0 +1,58 @@
+Board object:
+
+Currently has copy method; probably more memory efficient to just use one board.
+Would require creating an undo move method, which would require the board to keep
+track of which moves have been made. Would really help with space, though.
+
+Might be able to remove a few methods, booleans. For instance, does Board really
+need to have isDone? Can't it just return NULL if no moves found?
+
+player.cpp:
+
+Start timer; we get constant 30 seconds, so #define that at top of cpp.
+
+Going to have an opening book, so will need a hash function somewhere.
+First thing to do is check if board state is in has function. If so, return
+the corresponding move.
+
+If not, look through tree. Create a node object of some sort. node will have
+a) the list of moves that brought it to that point.
+b) the list of children (each corresponding to a certain move)
+c) its parent
+d) its value
+e) its generation, maybe?
+f) the child that gives it that value, ie the best move
+
+Might be a good idea to keep an array of pointers to the current and next gens,
+just to help with iteration (i.e., node *curr[] = [firstmovepointer,
+secondmovepointer, thirdmovepointer, etc..)
+
+Do first few iterations, according to same general pattern as below.
+(three generations should be enough, can pretty easily hardcode that)
+
+NOTE: instead of currgen/nextgen, might be better to just have one big array,
+to help with updating.
+
+currgen = genthree;
+nextgen = NULL;
+
+while (remainingTime > somevalue)
+{
+    for (all nodes in the list of currgen pointers)
+    {
+        find all legal moves (checkMove in board) function;
+        add nodes of all those legal moves to nextgen;
+        obviously update the list of children in each member of currgen;
+    }
+    del currgen (memory leaks bad)
+    currgen = nextgen
+    nextgen = NULL;
+    for (all nodes in the list of currgen pointers)
+    {
+        *calculate heuristic;*
+        *check alpha/beta;*
+        *backpropagate one step (minimax);*
+    }
+    set bestMove = topnode->bestmove
+}
+return bestmove;
