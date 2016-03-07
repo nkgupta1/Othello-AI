@@ -39,5 +39,9 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
      * TODO: Implement how moves your AI should play here. You should first
      * process the opponent's opponents move before calculating your own move
      */ 
+     if (msLeft < 10) {
+        Move *m = new Move(0,0);
+        return m;
+     }
     return NULL;
 }
