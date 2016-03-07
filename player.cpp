@@ -43,5 +43,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         Move *m = new Move(0,0);
         return m;
      }
+     else if (msLeft > 10) {
+        return NULL;
+     }
     return NULL;
 }
