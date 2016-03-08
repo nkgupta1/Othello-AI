@@ -4,11 +4,8 @@ Algorithmic objectives:
     opening book
     interative deepening
     recursive minimax
-<<<<<<< HEAD
     updating heuristic
-=======
     iterative minimax
->>>>>>> d31a018cc790c63cf860dde4a9962f32481faf2b
     transposition table
 
 
