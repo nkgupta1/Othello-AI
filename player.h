@@ -10,6 +10,7 @@
 #define XY(i, j) (i + 8 * j)
 #define N        8
 #define MAXDEPTH 2
+#define TIME     960000
 
 using namespace std;
 
