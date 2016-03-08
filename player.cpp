@@ -48,6 +48,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     // Storing opponents move in default board before optimization
      b.doMove(opponentsMove, oppSide);
+
+     
      if (msLeft < 10) {
         Move *m = new Move(0,0);
         return m;
