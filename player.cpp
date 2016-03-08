@@ -72,8 +72,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         heuristicMove = recursiveHeuristic(gameBoard->copy(), 0, us);
     }
 
-
-
     /* Update board with our move */
     test = gameBoard->doMove(heuristicMove, us);
 

@@ -51,7 +51,7 @@ bool Board::onBoard(int x, int y) {
 /*
  * Returns true if the game is finished; false otherwise. The game is finished 
  * if neither side has a legal move.
- * IS THIS EVER USEFUL?
+ * IS THIS EVER USEFUL
  */
 bool Board::isDone() {
     return !(hasMoves(BLACK) || hasMoves(WHITE));
@@ -83,7 +83,7 @@ bool Board::checkMove(Move *m, Side side) {
     // Make sure the square hasn't already been taken.
     if (occupied(X, Y)) return false;
 
-    Side other = (side == BLACK) ? WHITE : BLACK;
+    Side other = switchSide(side);
     for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
             if (dy == 0 && dx == 0) continue;
@@ -121,7 +121,7 @@ vector<Move> Board::doMove(Move *m, Side side) {
 
     int X = m->getX();
     int Y = m->getY();
-    Side other = (side == BLACK) ? WHITE : BLACK;
+    Side other = switchSide(side);
     for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
             if (dy == 0 && dx == 0) continue;
@@ -164,7 +164,7 @@ void Board::undoMove(vector<Move> moves, Side side) {
     taken[XY(moves[0].getX(), moves[0].getY())] = 0;
     black[XY(moves[0].getX(), moves[0].getY())] = 0;
 
-    Side flipside = (side == WHITE) ? BLACK : WHITE;
+    Side flipside = switchSide(side);
     for (unsigned int i = 1; i < moves.size(); i++)
     {
         set(flipside, moves[i].getX(), moves[i].getY());
@@ -175,7 +175,7 @@ void Board::undoMove(vector<Move> moves, Side side) {
  * Current count of given side's stones.
  */
 int Board::count(Side side) {
-    return (side == BLACK) ? countBlack() : countWhite();
+    return switchSide(side);
 }
 
 /*
