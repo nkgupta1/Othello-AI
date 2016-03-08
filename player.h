@@ -4,7 +4,11 @@
 #include <iostream>
 #include "common.h"
 #include "board.h"
+<<<<<<< HEAD
 #include "Node.h"
+=======
+#include <vector>
+>>>>>>> fabbdca9b357c40b1280c5cd44c1306a298b0427
 
 #define XY(i, j) (i + 8 * j)
 #define N        8

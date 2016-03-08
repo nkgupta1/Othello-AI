@@ -75,7 +75,9 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
 
     /* Update board with our move */
-    gameBoard->doMove(heuristicMove, us);
+    vector<Move> test;
+    test = gameBoard->doMove(heuristicMove, us);
+
     return heuristicMove;
 }
 
