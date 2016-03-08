@@ -1,5 +1,7 @@
 #include "board.h"
 
+#define XY(i, j) (i + 8 * j)
+
 /*
  * Make a standard 8x8 othello board and initialize it to the standard setup.
  */
@@ -105,12 +107,17 @@ bool Board::checkMove(Move *m, Side side) {
 /*
  * Modifies the board to reflect the specified move.
  */
-void Board::doMove(Move *m, Side side) {
+vector<Move> Board::doMove(Move *m, Side side) {
+    vector<Move> res;    
     // A NULL move means pass.
-    if (m == NULL) return;
+    if (m == NULL) return res;
 
     // Ignore if move is invalid.
-    if (!checkMove(m, side)) return;
+    if (!checkMove(m, side)) return res;
+
+    /* Actual move gets deleted for undo; remainder get flipped */
+    Move curr(m->getX(), m->getY());
+    res.push_back(curr);
 
     int X = m->getX();
     int Y = m->getY();
@@ -133,6 +140,11 @@ void Board::doMove(Move *m, Side side) {
                 y += dy;
                 while (onBoard(x, y) && get(other, x, y)) {
                     set(side, x, y);
+                    /* All changes get flipped in undo */
+                    int x2 = x;
+                    int y2 = y;
+                    Move curr2(x2, y2);
+                    res.push_back(curr2);
                     x += dx;
                     y += dy;
                 }
@@ -140,6 +152,23 @@ void Board::doMove(Move *m, Side side) {
         }
     }
     set(side, X, Y);
+    return res;
+}
+
+void Board::undoMove(vector<Move> moves, Side side) {
+    if (moves.size() == 0)
+    {
+        return;
+    }
+    
+    taken[XY(moves[0].getX(), moves[0].getY())] = 0;
+    black[XY(moves[0].getX(), moves[0].getY())] = 0;
+
+    Side flipside = (side == WHITE) ? BLACK : WHITE;
+    for (unsigned int i = 1; i < moves.size(); i++)
+    {
+        set(flipside, moves[i].getX(), moves[i].getY());
+    }
 }
 
 /*
