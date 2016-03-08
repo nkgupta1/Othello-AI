@@ -49,6 +49,7 @@ bool Board::onBoard(int x, int y) {
 /*
  * Returns true if the game is finished; false otherwise. The game is finished 
  * if neither side has a legal move.
+ * IS THIS EVER USEFUL?
  */
 bool Board::isDone() {
     return !(hasMoves(BLACK) || hasMoves(WHITE));

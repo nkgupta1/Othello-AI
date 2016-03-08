@@ -8,24 +8,36 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
-
-    b = new Board();
-    mySide = side;
-    oppSide = (side == BLACK) ? WHITE : BLACK;
-
-
-    /* 
-     * TODO: Do any initialization you need to do here (setting up the board,
-     * precalculating things, etc.) However, remember that you will only have
-     * 30 seconds.
-     */
+    gameBoard = new Board();
+    us = side;
+    them = (us == WHITE) ? BLACK : WHITE;
 }
 
 /*
  * Destructor for the player.
  */
 Player::~Player() {
-    delete b;
+    delete gameBoard;
+}
+
+/* Calculates the best available move at 1-ply */
+Move *Player::simpleHeuristic() {
+    Move *bestmove =  new Move(0, 0);
+    Move *m = new Move(0, 0);
+
+    int best = -100; /* Lower value than present in heuristic */
+    for (int i = 0; i < 64; i++) {
+        m->setX(i % N);
+        m->setY(i / N);
+        if ((gameBoard->checkMove(m, us) == true)  &&
+            (heuristic[i] > best)) {
+                best = heuristic[i];
+                bestmove->setX(i % N);
+                bestmove->setY(i / N);
+            }
+    }
+    delete m;
+    return bestmove;
 }
 
 /*
@@ -41,22 +53,20 @@ Player::~Player() {
  * return NULL.
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
-    /* 
-     * TODO: Implement how moves your AI should play here. You should first
-     * process the opponent's opponents move before calculating your own move
-     */ 
+    /* START TIME */
 
-    // Storing opponents move in default board before optimization
-     b.doMove(opponentsMove, oppSide);
+    /* Update board with opponent's move */
+    gameBoard->doMove(opponentsMove, them);
 
-     
-     if (msLeft < 10) {
-        Move *m = new Move(0,0);
-        return m;
-     }
-     else if (msLeft > 10) {
+    /* No legal moves to make */
+    if (gameBoard->hasMoves(us) == false) {
         return NULL;
-     }
-    return NULL;
-}
+    }
 
+    Move *heuristicMove;
+    heuristicMove = simpleHeuristic();
+
+    /* Update board with our move */
+    gameBoard->doMove(heuristicMove, us);
+    return heuristicMove;
+}
