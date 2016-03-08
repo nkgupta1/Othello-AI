@@ -31,6 +31,7 @@ public:
     int count(Side side);
     int countBlack();
     int countWhite();
+    char getPiece(int i);
 
     void setBoard(char data[]);
 };

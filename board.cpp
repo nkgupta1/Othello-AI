@@ -208,3 +208,9 @@ void Board::setBoard(char data[]) {
         }
     }
 }
+
+char Board::getPiece(int i) {
+    if (!taken[i] & 1) return ' ';
+    if (black[i] & 1) return 'b';
+    else return 'w';
+}
