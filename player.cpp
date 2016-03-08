@@ -85,6 +85,13 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     // std::cerr << "TESTX: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
 
+    /* Make sure that move is legal */
+    /* There's a weird segfault that happens when we're getting dominated, even with this. Should fix that */
+    if (!gameBoard->checkMove(heuristicMove, us)) {
+        fprintf(stderr, "Oopsies!\n");
+        heuristicMove = simpleHeuristic();
+    }
+
     /* Update board with our move */
     gameBoard->doMove(heuristicMove, us);
 
