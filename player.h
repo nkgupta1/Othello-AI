@@ -21,7 +21,7 @@ public:
     ~Player();
 
     Move *simpleHeuristic();
-    Move *recursiveHeuristic(Board * b, int depth, bool ourTurn);
+    Node recursiveHeuristic(Board * b, int depth, Side side);
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context

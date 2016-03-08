@@ -37,7 +37,7 @@ Move *Player::simpleHeuristic() {
             }
     }
     delete m;
-    return bestmove;
+    return bestMove;
 }
 
 /*
@@ -69,17 +69,17 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     // Recursive Heuristic
     if (testingMinimax) {
-        heuristicMove = recursiveHeuristic(gameBoard->copy(), 0, us).getChildren()[0];
+        heuristicMove = &recursiveHeuristic(gameBoard->copy(), 0, us).getMoves()[0];
     }
 
     /* Update board with our move */
-    test = gameBoard->doMove(heuristicMove, us);
+    gameBoard->doMove(heuristicMove, us);
 
     return heuristicMove;
 }
 
-Node recursiveHeuristic(Board *b, int depth, Side side) {
-    if (depth == MAXDEPTH || !b->hasMove(side)) {
+Node Player::recursiveHeuristic(Board *b, int depth, Side side) {
+    if (depth == MAXDEPTH || !b->hasMoves(side)) {
         // Change scoring function to more advanced
         int score = (side == WHITE) ? b->countWhite() - b->countBlack()
                                     : b->countBlack() - b->countWhite();
@@ -91,13 +91,13 @@ Node recursiveHeuristic(Board *b, int depth, Side side) {
         Node best(-100);
         // temp move
         Move *m = new Move(0,0);
-        Move *bestMove = new Move(0, 0);
-        for (int i = 0; i < 64, i++) {
+        for (int i = 0; i < 64; i++) {
             m->setX(i % N);
             m->setY(i / N);
             if (gameBoard->checkMove(m, side) == true) {
                 vector<Move> moves = b->doMove(m, side);
                 Node n = recursiveHeuristic(b, depth + 1, switchSide(side));
+                n.setMoves(moves);
                 best = (best.getScore() > n.getScore())? best : n;
                 b->undoMove(n.getMoves(), side);
             }
@@ -110,13 +110,13 @@ Node recursiveHeuristic(Board *b, int depth, Side side) {
         Node best(2000);
         // temp move
         Move *m = new Move(0,0);
-        Move *bestMove = new Move(0, 0);
-        for (int i = 0; i < 64, i++) {
+        for (int i = 0; i < 64; i++) {
             m->setX(i % N);
             m->setY(i / N);
             if (gameBoard->checkMove(m, side) == true) {
                 vector<Move> moves = b->doMove(m, side);
                 Node n = recursiveHeuristic(b, depth + 1, switchSide(side));
+                n.setMoves(moves);
                 best = (best.getScore() < n.getScore())? best : n;
                 b->undoMove(n.getMoves(), side);
             }
