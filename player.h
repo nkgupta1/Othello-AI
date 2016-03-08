@@ -22,10 +22,11 @@ public:
     ~Player();
 
     Move *simpleHeuristic();
-    Node recursiveHeuristic(Board * b, int depth, Side side);
     Node minimax(Board *b, int depth, int enddepth, Side side);
+    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side);
     Move *doMove(Move *opponentsMove, int msLeft);
     int scoreFunction(Board *b);
+    void updateHeuristics(Board *b, int scoreMap[64]);
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
