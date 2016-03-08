@@ -164,6 +164,11 @@ void Board::undoMove(vector<Move> moves, Side side) {
     taken[XY(moves[0].getX(), moves[0].getY())] = 0;
     black[XY(moves[0].getX(), moves[0].getY())] = 0;
 
+    if (moves.size() == 1)
+    {
+        return;
+    }
+
     Side flipside = switchSide(side);
     for (unsigned int i = 1; i < moves.size(); i++)
     {

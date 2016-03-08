@@ -9,7 +9,7 @@
 
 #define XY(i, j) (i + 8 * j)
 #define N         8
-#define TESTDEPTH 3
+#define TESTDEPTH 2
 #define MAXDEPTH  5
 #define TIME      960000
 
@@ -23,6 +23,7 @@ public:
 
     Move *simpleHeuristic();
     Node recursiveHeuristic(Board * b, int depth, Side side);
+    Node minimax(Board *b, int depth, int enddepth, Side side);
     Move *doMove(Move *opponentsMove, int msLeft);
     int scoreFunction(Board *b);
 

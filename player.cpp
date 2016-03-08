@@ -57,6 +57,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     /* Update board with opponent's move */
     gameBoard->doMove(opponentsMove, them);
+ 
 
     /* No legal moves to make */
     if (gameBoard->hasMoves(us) == false) {
@@ -69,7 +70,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     // Recursive Heuristic
 /*    if (testingMinimax) {*/
-        Node best = recursiveHeuristic(gameBoard->copy(), 0, us);
+        // Node best = recursiveHeuristic(gameBoard->copy(), 0, us);
+        Node best = minimax(gameBoard, 0, TESTDEPTH, us);
 
         // //fprintf(stderr, "Start\n");
         // for (unsigned int i = 0; i < best.getMoves().size(); i++)
@@ -81,16 +83,17 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         // heuristicMove = &best.getMoves()[0];
 /*    }*/
 
-    heuristicMove = new Move(best.getMoves()[0].getX(), best.getMoves()[0].getY());
+    // heuristicMove = new Move(best.getMoves()[0].getX(), best.getMoves()[0].getY());
+    heuristicMove = new Move(best.getSingleMove().getX(), best.getSingleMove().getY());
 
     // std::cerr << "TESTX: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
 
     /* Make sure that move is legal */
-    /* There's a weird segfault that happens when we're getting dominated, even with this. Should fix that */
-    if (!gameBoard->checkMove(heuristicMove, us)) {
-        fprintf(stderr, "Oopsies!\n");
-        heuristicMove = simpleHeuristic();
-    }
+    /* There's a weird segfault that happens when we're getting defeated badly, even with this. Should fix that */
+    // if (!gameBoard->checkMove(heuristicMove, us)) {
+    //     fprintf(stderr, "Oopsies!\n");
+    //     heuristicMove = simpleHeuristic();
+    // }
 
     /* Update board with our move */
     gameBoard->doMove(heuristicMove, us);
@@ -118,6 +121,80 @@ int Player::scoreFunction(Board *b) {
         return score;
     }
     return -1 * score;
+}
+
+int simpleScoreFunction(Board *b, Side side) {
+    int score = (side == WHITE)   ? b->countWhite() - b->countBlack()
+                                  : b->countBlack() - b->countWhite();
+    return score;
+}
+
+Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
+    std::cerr << "One loopy" << endl;
+    if ((depth == enddepth) || (!b->hasMoves(side))) {
+        return Node(simpleScoreFunction(b, us));
+    }
+
+    if (side == us) {
+        Node result;
+        Move bestMove;
+        int best = -9000;
+        for (unsigned int i = 0; i < 64; i++) {
+            Move *curr = new Move(i % N, i / N);
+            Node test;
+            if (b->checkMove(curr, side)) {
+                std::cerr << curr->getX() << curr->getY() << endl;
+                vector<Move> testmove;
+                testmove = b->doMove(curr, side);
+                test = minimax(b, depth + 1, enddepth, switchSide(side));
+                int testscore = test.getScore();
+
+                if (testscore > best) {
+                    best = testscore;
+                    bestMove.setX(curr->getX());
+                    bestMove.setY(curr->getY());
+                }
+                std::cerr << testscore << endl;
+                b->undoMove(testmove, side);
+            }
+            delete curr;
+        }
+        std::cerr << "X: " << bestMove.getX() << " Y: " << bestMove.getY() << std::endl;
+        result.setSingleMove(bestMove);
+        result.setScore(best);
+        return result;
+    }
+
+    else {
+        Node result;
+        Move bestMove;
+        int best = 9000;
+        for (unsigned int i = 0; i < 64; i++) {
+            Move *curr = new Move(i % N, i / N);
+            Node test;
+            if (b->checkMove(curr, side)) {
+
+                std::cerr << curr->getX() << curr->getY() << endl;
+                vector<Move> testmove;
+                testmove = b->doMove(curr, side);
+                test = minimax(b, depth + 1, enddepth, switchSide(side));
+                int testscore = test.getScore();
+
+                if (testscore < best) {
+                    best = testscore;
+                    bestMove.setX(curr->getX());
+                    bestMove.setY(curr->getY());
+                }
+                std::cerr << testscore << endl;
+                b->undoMove(testmove, side);
+            }
+            delete curr;
+        }
+        std::cerr << "X: " << bestMove.getX() << " Y: " << bestMove.getY() << std::endl;
+        result.setSingleMove(bestMove);
+        result.setScore(best);
+        return result;
+    }
 }
 
 Node Player::recursiveHeuristic(Board *b, int depth, Side side) {
