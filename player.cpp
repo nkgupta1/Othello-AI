@@ -75,7 +75,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
 
     /* Update board with our move */
-    vector<Move> test;
     test = gameBoard->doMove(heuristicMove, us);
 
     return heuristicMove;
@@ -99,7 +98,7 @@ Node recursiveHeuristic(Board *b, int depth, Side side) {
             m->setX(i % N);
             m->setY(i / N);
             if (gameBoard->checkMove(m, side) == true) {
-                b->
+                vector<Move> moves = b->doMove(m, side);
                 Node n = recursiveHeuristic()
             }
         }
