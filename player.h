@@ -9,8 +9,8 @@
 
 #define XY(i, j) (i + 8 * j)
 #define N         8
-#define TESTDEPTH 2
-#define MAXDEPTH  2
+#define TESTDEPTH 3
+#define MAXDEPTH  5
 #define TIME      960000
 
 using namespace std;
@@ -24,20 +24,21 @@ public:
     Move *simpleHeuristic();
     Node recursiveHeuristic(Board * b, int depth, Side side);
     Move *doMove(Move *opponentsMove, int msLeft);
+    int scoreFunction(Board *b);
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
     Board *gameBoard;
     Side us;
     Side them;
-    int heuristic[64] = {  1000, 100, 100, 100, 100, 100, 100, 1000, 
-                            100, -40, -10, -10, -10, -10, -40,  100,
+    int heuristic[64] = {  1000,  50, 100, 100, 100, 100,  50, 1000, 
+                             50, -40, -10, -10, -10, -10, -40,   50,
                             100, -10,  -1,  -1,  -1,  -1, -10,  100,
                             100, -10,  -1,  -1,  -1,  -1, -10,  100,
                             100, -10,  -1,  -1,  -1,  -1, -10,  100,
                             100, -10,  -1,  -1,  -1,  -1, -10,  100,
-                            100, -40, -10, -10, -10, -10, -40,  100,
-                           1000, 100, 100, 100, 100, 100, 100, 1000};
+                             50, -40, -10, -10, -10, -10, -40,   50,
+                           1000,  50, 100, 100, 100, 100,  50, 1000};
 };
 
 #endif
