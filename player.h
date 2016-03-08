@@ -8,9 +8,10 @@
 #include <vector>
 
 #define XY(i, j) (i + 8 * j)
-#define N        8
-#define MAXDEPTH 2
-#define TIME     960000
+#define N         8
+#define TESTDEPTH 2
+#define MAXDEPTH  2
+#define TIME      960000
 
 using namespace std;
 

@@ -68,9 +68,22 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     // heuristicMove = simpleHeuristic();
 
     // Recursive Heuristic
-    if (testingMinimax) {
-        heuristicMove = &recursiveHeuristic(gameBoard->copy(), 0, us).getMoves()[0];
-    }
+/*    if (testingMinimax) {*/
+        Node best = recursiveHeuristic(gameBoard->copy(), 0, us);
+
+        // fprintf(stderr, "Start\n");
+        // for (unsigned int i = 0; i < best.getMoves().size(); i++)
+        // {
+        // 	std::cerr << "X: " << best.getMoves()[i].getX() << " Y: " << best.getMoves()[i].getY() << std::endl;
+        // }
+        // fprintf(stderr, "Finish\n");
+        
+        // heuristicMove = &best.getMoves()[0];
+/*    }*/
+
+    heuristicMove = new Move(best.getMoves()[0].getX(), best.getMoves()[0].getY());
+
+    // std::cerr << "TESTX: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
 
     /* Update board with our move */
     gameBoard->doMove(heuristicMove, us);
@@ -79,11 +92,26 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 }
 
 Node Player::recursiveHeuristic(Board *b, int depth, Side side) {
-    if (depth == MAXDEPTH || !b->hasMoves(side)) {
-        // Change scoring function to more advanced
-        int score = (side == WHITE) ? b->countWhite() - b->countBlack()
-                                    : b->countBlack() - b->countWhite();
-        return Node(score);
+    // printBoard(b);
+    int maxD;
+    // fprintf(stderr, "Depth %d\n\n", depth);
+    if (testingMinimax) {
+        maxD = TESTDEPTH;
+    }
+    else {
+        maxD = MAXDEPTH; 
+    }
+    if (depth == maxD || !b->hasMoves(side)) {
+        // if (testingMinimax) {
+            // Change scoring function to more advanced
+            int score = (us == WHITE)   ? b->countWhite() - b->countBlack()
+                                      : b->countBlack() - b->countWhite();
+            // fprintf(stderr, "Score %d\n", score);
+            return Node(score);
+        // }
+        // else {
+        //     //Modified simple heuristic
+        // }
     }
 
     // want to maximize
@@ -95,18 +123,32 @@ Node Player::recursiveHeuristic(Board *b, int depth, Side side) {
             m->setX(i % N);
             m->setY(i / N);
             if (gameBoard->checkMove(m, side) == true) {
+            	// fprintf(stderr, "At depth %d\n", depth);
+            	// fprintf(stderr, "hi\n");
                 vector<Move> moves = b->doMove(m, side);
+                // fprintf(stderr, "X: %d Y: %d\n", m->getX(), m->getY());
+
+
+                // fprintf(stderr, "Start\n");
+                // for (unsigned int i = 0; i < moves.size(); i++)
+                // {
+                //  std::cerr << "X: " << moves[i].getX() << " Y: " << moves[i].getY() << std::endl;
+                // }
+                // fprintf(stderr, "Finish\n");
+
                 Node n = recursiveHeuristic(b, depth + 1, switchSide(side));
                 n.setMoves(moves);
                 best = (best.getScore() > n.getScore())? best : n;
                 b->undoMove(n.getMoves(), side);
             }
         }
+        // std::cerr << "X: " << best.getMoves()[0].getX() << " Y: " << best.getMoves()[0].getY() << std::endl;
         return best;
     }
 
     // want to minimize
     else {
+        // std::cerr << "WRONG!\n" << std::endl;
         Node best(2000);
         // temp move
         Move *m = new Move(0,0);
@@ -115,6 +157,7 @@ Node Player::recursiveHeuristic(Board *b, int depth, Side side) {
             m->setY(i / N);
             if (gameBoard->checkMove(m, side) == true) {
                 vector<Move> moves = b->doMove(m, side);
+                fprintf(stderr, "OPP X: %d Y: %d\n", m->getX(), m->getY());
                 Node n = recursiveHeuristic(b, depth + 1, switchSide(side));
                 n.setMoves(moves);
                 best = (best.getScore() < n.getScore())? best : n;

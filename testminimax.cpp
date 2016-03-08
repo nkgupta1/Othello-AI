@@ -32,6 +32,8 @@ int main(int argc, char *argv[]) {
      * example state.
      */
 
+    player->gameBoard->setBoard(boardData);
+
     // Get player's move and check if it's right.
     Move *move = player->doMove(NULL, 0);
 
