@@ -4,6 +4,7 @@ Algorithmic objectives:
     opening book
     interative deepening
     recursive minimax
+    updating heuristic
     transposition table
 
 
