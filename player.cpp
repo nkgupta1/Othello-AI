@@ -69,7 +69,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     // Recursive Heuristic
     if (testingMinimax) {
-        heuristicMove = recursiveHeuristic(gameBoard->copy(), 0, us);
+        heuristicMove = recursiveHeuristic(gameBoard->copy(), 0, us).getChildren()[0];
     }
 
 
@@ -90,7 +90,7 @@ Node recursiveHeuristic(Board *b, int depth, Side side) {
 
     // want to maximize
     if (side == us) {
-        int best = -100;
+        Node best(-100);
         // temp move
         Move *m = new Move(0,0);
         Move *bestMove = new Move(0, 0);
@@ -99,12 +99,30 @@ Node recursiveHeuristic(Board *b, int depth, Side side) {
             m->setY(i / N);
             if (gameBoard->checkMove(m, side) == true) {
                 vector<Move> moves = b->doMove(m, side);
-                Node n = recursiveHeuristic()
+                Node n = recursiveHeuristic(b, depth + 1, switchSide(side));
+                best = (best.getScore() > n.getScore())? best : n;
+                b->undoMove(n.getMoves(), side);
             }
         }
+        return best;
     }
+
     // want to minimize
     else {
-
+        Node best(2000);
+        // temp move
+        Move *m = new Move(0,0);
+        Move *bestMove = new Move(0, 0);
+        for (int i = 0; i < 64, i++) {
+            m->setX(i % N);
+            m->setY(i / N);
+            if (gameBoard->checkMove(m, side) == true) {
+                vector<Move> moves = b->doMove(m, side);
+                Node n = recursiveHeuristic(b, depth + 1, switchSide(side));
+                best = (best.getScore() < n.getScore())? best : n;
+                b->undoMove(n.getMoves(), side);
+            }
+        }
+        return best;
     }
 }
