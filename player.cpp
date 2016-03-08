@@ -22,7 +22,7 @@ Player::~Player() {
 
 /* Calculates the best available move at 1-ply */
 Move *Player::simpleHeuristic() {
-    Move *bestmove =  new Move(0, 0);
+    Move *bestMove =  new Move(0, 0);
     Move *m = new Move(0, 0);
 
     int best = -100; /* Lower value than present in heuristic */
@@ -32,8 +32,8 @@ Move *Player::simpleHeuristic() {
         if ((gameBoard->checkMove(m, us) == true)  &&
             (heuristic[i] > best)) {
                 best = heuristic[i];
-                bestmove->setX(i % N);
-                bestmove->setY(i / N);
+                bestMove->setX(i % N);
+                bestMove->setY(i / N);
             }
     }
     delete m;
@@ -64,9 +64,46 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     }
 
     Move *heuristicMove;
-    heuristicMove = simpleHeuristic();
+    // 1-ply
+    // heuristicMove = simpleHeuristic();
+
+    // Recursive Heuristic
+    if (testingMinimax) {
+        heuristicMove = recursiveHeuristic(gameBoard->copy(), 0, us);
+    }
+
+
 
     /* Update board with our move */
     gameBoard->doMove(heuristicMove, us);
     return heuristicMove;
+}
+
+Node recursiveHeuristic(Board *b, int depth, Side side) {
+    if (depth == MAXDEPTH || !b->hasMove(side)) {
+        // Change scoring function to more advanced
+        int score = (side == WHITE) ? b->countWhite() - b->countBlack()
+                                    : b->countBlack() - b->countWhite();
+        return Node(score);
+    }
+
+    // want to maximize
+    if (side == us) {
+        int best = -100;
+        // temp move
+        Move *m = new Move(0,0);
+        Move *bestMove = new Move(0, 0);
+        for (int i = 0; i < 64, i++) {
+            m->setX(i % N);
+            m->setY(i / N);
+            if (gameBoard->checkMove(m, side) == true) {
+                b->
+                Node n = recursiveHeuristic()
+            }
+        }
+    }
+    // want to minimize
+    else {
+
+    }
 }

@@ -11,9 +11,12 @@ public:
     int score;
     vector<Move> moves;
     vector<Node> children;
+    Node (int s) {
+        score = s;
+    }
     Node (int s, Move *m) {
         score = s;
-        lastMove = m;
+        moves.push_back(*m);
     }
 
     // Getters

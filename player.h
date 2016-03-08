@@ -4,9 +4,11 @@
 #include <iostream>
 #include "common.h"
 #include "board.h"
+#include "Node.h"
 
 #define XY(i, j) (i + 8 * j)
 #define N        8
+#define MAXDEPTH 2
 
 using namespace std;
 
@@ -17,6 +19,7 @@ public:
     ~Player();
 
     Move *simpleHeuristic();
+    Move *recursiveHeuristic(Board * b, int depth, bool ourTurn);
     Move *doMove(Move *opponentsMove, int msLeft);
 
     // Flag to tell if the player is running within the test_minimax context
