@@ -8,6 +8,9 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
+
+    // Temporary measure right now for testing
+    iterativeDeepening = false;
     turnCount = 0;
     gameBoard = new Board();
     us = side;
@@ -303,6 +306,12 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* START TIME */
+    const long double startTime = 1000 * time(0);
+
+    /* For testing purposes, don't want longer than 10 sec */
+    if (msLeft == -1) {
+        msLeft = TTIME;
+    }
 
     /* Update board with opponent's move */
     gameBoard->doMove(opponentsMove, them);
@@ -325,6 +334,15 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     if (testingMinimax) {
         best = minimax(gameBoard, 0, TESTDEPTH, us);
+    }
+    else if (iterativeDeepening) {
+        int depth = STARTDEPTH;
+        do {
+/*            fprintf(stderr, "Depth reached: %d\n", depth);*/
+            best = alphaBeta(gameBoard, 0, depth, -100000, 100000, us, 0);
+            depth += 2;
+/*            fprintf(stderr, "Time difference: %f\n", 1000 * time(0) - startTime);*/
+        } while ((((1000 * time(0)) - startTime) < (0.5 * msLeft)) && (depth <= 60));
     }
     else {
         best = alphaBeta(gameBoard, 0, MAXDEPTH, -100000, 100000, us, 0);

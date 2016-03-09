@@ -6,12 +6,15 @@
 #include "board.h"
 #include "Node.h"
 #include <vector>
+#include <ctime>
 
-#define XY(i, j) (i + 8 * j)
-#define N         8
-#define TESTDEPTH 2
-#define MAXDEPTH  7
-#define TIME      960000
+#define XY(i, j)   (i + 8 * j)
+#define N          8
+#define TESTDEPTH  2
+#define STARTDEPTH 3
+#define MAXDEPTH   7
+#define TIME       960000
+#define TTIME      1000
 
 using namespace std;
 
@@ -33,6 +36,8 @@ public:
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
+    // Temporary bool to test iterative deepening capabilities
+    bool iterativeDeepening;
     Board *gameBoard;
     Side us;
     Side them;
