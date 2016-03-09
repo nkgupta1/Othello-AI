@@ -79,35 +79,39 @@ int Player::scoreFunction(Board *b, int win) {
  */
 int Player::simpleScoreFunction(Board *b) {
     int score = (us == WHITE)   ? b->countWhite() - b->countBlack()
-                                  : b->countBlack() - b->countWhite();
+                                : b->countBlack() - b->countWhite();
 
-    /* Game is over; let's see who won */
+    /**
+     * Game is over; let's see who won 
+     * '+ score' is so that AI emphasizes
+     * overwhelming victories/closer defeats.
+     */
     if (turnCount == 60) {
         if ((us == WHITE) && (score > 0)) {
-            return 10000;
+            return 9000 + score;
         }
         else if ((us == BLACK) && (score < 0)) {
-            return 10000;
+            return 9000 + score;
         }
         else {
-            return -10000;
+            return -9000 + score;
         }
     }
 
     if (us == WHITE) {
         if (b->countWhite() == 0) {
-            return -10000;
+            return -9000 + score;
         }
         else if (b->countBlack() == 0) {
-            return 10000;
+            return 9000 + score;
         }
     }
     else if (us == BLACK) {
         if (b->countWhite() == 0) {
-            return 10000;
+            return 9000 + score;
         }
         else if (b->countBlack() == 0) {
-            return -10000;
+            return -9000 + score;
         }
     } 
     return score;
@@ -127,7 +131,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
     if (side == us) {
         Node result;
         Move bestMove;
-        int best = -9000;
+        int best = -10000;
         for (unsigned int i = 0; i < 64; i++) {
             Move *curr = new Move(i % N, i / N);
             Node test;
@@ -157,7 +161,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
     else {
         Node result;
         Move bestMove;
-        int best = 9000;
+        int best = 10000;
         for (unsigned int i = 0; i < 64; i++) {
             Move *curr = new Move(i % N, i / N);
             Node test;
@@ -189,7 +193,6 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
  * Minimax with alpha-beta pruning. Even better.
  */
 Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass) {
-    // fprintf(stderr, "Nonsense! Depth of %d, enddepth of %d\n", depth, enddepth);
 
     /**
      * One side needs to pass; move to next layer down
@@ -197,23 +200,18 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
      * This is done even if means going below depth; wins/losses
      * are important.
      */
-/*    if (!b->hasMoves(side)) {
+    if (!b->hasMoves(side)) {
         if (pass == 0) {
             Node result;
-            result = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 1); //TEST, USUALLY 1
+            result = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 1);
             return result;
         }
         else if (pass == 1) {
-            fprintf(stderr, "Game OVER!\n");
             return Node(scoreFunction(b, 1));
         }
-    }*/
-
-    if (b->isDone()) {
-        return Node(scoreFunction(b, 1));
     }
 
-    if (depth >= enddepth) {
+    if ((depth >= enddepth) || (!b->hasMoves(side))) {
         if (testingMinimax) {
             return Node(simpleScoreFunction(b));
         }
@@ -223,7 +221,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
     if (side == us) {
         Node result;
         Move bestMove;
-        int best = -9000;
+        int best = -10000;
         for (unsigned int i = 0; i < 64; i++) {
             Move *curr = new Move(i % N, i / N);
             Node test;
@@ -243,7 +241,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 b->undoMove(testmove, side);
                 turnCount -= 1;
 
-                alpha = max(alpha, best); // Does this work?
+                alpha = max(alpha, best);
             }
             delete curr;
             if (beta <= alpha) {
@@ -258,7 +256,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
     else {
         Node result;
         Move bestMove;
-        int best = 9000;
+        int best = 10000;
         for (unsigned int i = 0; i < 64; i++) {
             Move *curr = new Move(i % N, i / N);
             Node test;
@@ -278,7 +276,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 b->undoMove(testmove, side);
                 turnCount -= 1;
 
-                beta = min(best, best); //Or this too?
+                beta = min(best, best);
             }
             delete curr;
             if (beta <= alpha) {
@@ -329,13 +327,12 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         best = minimax(gameBoard, 0, TESTDEPTH, us);
     }
     else {
-        best = alphaBeta(gameBoard, 0, MAXDEPTH, -10000, 10000, us, 0);
+        best = alphaBeta(gameBoard, 0, MAXDEPTH, -100000, 100000, us, 0);
     }
 
     heuristicMove = new Move(best.getSingleMove().getX(), best.getSingleMove().getY());
 
     /* Make sure that move is legal */
-    /* There's a weird segfault that happens when we're getting defeated badly, even with this. Should fix that */
     if (!gameBoard->checkMove(heuristicMove, us)) {
         fprintf(stderr, "Oopsies!\n");
         std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
@@ -350,6 +347,5 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         turnCount += 1;
     }
 
-    fprintf(stderr, "Turncount: %d\n", turnCount);
     return heuristicMove;
 }
