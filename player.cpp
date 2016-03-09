@@ -83,10 +83,10 @@ int simpleScoreFunction(Board *b, Side side) {
     }
     else if (side == BLACK) {
         if (b->countWhite() == 0) {
-            return 10000;
+            return 20000;
         }
         else if (b->countBlack() == 0) {
-            return -10000;
+            return -20000;
         }
     } 
     return score;
