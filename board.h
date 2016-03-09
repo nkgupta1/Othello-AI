@@ -26,6 +26,7 @@ public:
     bool isDone();
     bool hasMoves(Side side);
     bool checkMove(Move *m, Side side);
+    bool checkMoveOrg(Move *m, Side side);
     vector<Move> doMove(Move *m, Side side);
     void undoMove(vector<Move> moves, Side side);
     int count(Side side);

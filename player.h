@@ -13,9 +13,9 @@
 #define N          8
 #define TESTDEPTH  2
 #define STARTDEPTH 3
-#define MAXDEPTH   7
+#define MAXDEPTH   5
 #define TIME       960000
-#define TTIME      10000
+#define TTIME      30000
 
 using namespace std;
 

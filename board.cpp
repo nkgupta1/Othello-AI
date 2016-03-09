@@ -83,6 +83,100 @@ bool Board::checkMove(Move *m, Side side) {
     if (occupied(X, Y)) return false;
 
     Side other = switchSide(side);
+    int x = X-1;
+    int y = Y;
+    bool flipped = 0;
+    // check up
+    while (x > 0 && get(other, x, y)) {
+        x--;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check down
+    x = X+1;
+    y = Y;
+    flipped = 0;
+    while (x < 7 && get(other, x, y)) {
+        x++;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check left
+    x = X;
+    y = Y-1;
+    flipped = 0;
+    while (y > 0 && get(other, x, y)) {
+        y--;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check right
+    x = X;
+    y = Y+1;
+    flipped = 0;
+    while (y < 7 && get(other, x, y)) {
+        y++;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check diagonal up left
+    x = X-1;
+    y = Y-1;
+    flipped = 0;
+    while (x > 0 && y > 0 && get(other, x, y)) {
+        x--;
+        y--;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check diagonal up right
+    x = X+1;
+    y = Y-1;
+    flipped = 0;
+    while (x < 7 && y > 0 && get(other, x, y)) {
+        x++;
+        y--;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check diagonal down left
+    x = X-1;
+    y = Y+1;
+    flipped = 0;
+    while (x > 0 && y < 7 && get(other, x, y)) {
+        x--;
+        y++;
+        flipped = 1;
+    } 
+    if (get(side, x, y) && flipped) return true;
+    // check diagonal down right
+    x = X+1;
+    y = Y+1;
+    flipped = 0;
+    while (x < 7 && y < 7 && get(other, x, y)) {
+        x++;
+        y++;
+        flipped = 1;
+    }
+    if (get(side, x, y) && flipped) return true;
+
+    return false;
+}
+
+/*
+ * Returns true if a move is legal for the given side; false otherwise.
+ */
+bool Board::checkMoveOrg(Move *m, Side side) {
+    // Passing is only legal if you have no moves.
+    if (m == NULL) return !hasMoves(side);
+
+    int X = m->getX();
+    int Y = m->getY();
+
+    // Make sure the square hasn't already been taken.
+    if (occupied(X, Y)) return false;
+
+    Side other = switchSide(side);
     for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
             if (dy == 0 && dx == 0) continue;

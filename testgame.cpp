@@ -10,6 +10,7 @@ int main(int argc, char *argv[]) {
         cmd += " ";
         cmd += *(argv++);
     }
-    system(cmd.c_str());
+    int toRemoveWarningMsg = system(cmd.c_str());
+    toRemoveWarningMsg += 1;
     return 0;
 }

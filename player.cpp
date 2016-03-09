@@ -10,7 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = true;
+    iterativeDeepening = false;
     turnCount = 0;
     gameBoard = new Board();
     us = side;
@@ -219,7 +219,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         }
     }
 
-    if ((depth >= enddepth) || (!b->hasMoves(side))) {
+    if (depth >= enddepth) {
         if (testingMinimax) {
             return Node(simpleScoreFunction(b));
         }
@@ -388,7 +388,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     if (!gameBoard->checkMove(heuristicMove, us)) {
         fprintf(stderr, "Oopsies!\n");
         std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
-        /* If not, default to legal random move */
+        /* If not, default to legal best 1-ply move */
         heuristicMove = simpleHeuristic();
     }
 
