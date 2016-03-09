@@ -10,7 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = false;
+    iterativeDeepening = true;
     turnCount = 0;
     gameBoard = new Board();
     us = side;
@@ -197,6 +197,11 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
  */
 Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass) {
 
+    /* TIME CUTOFF - just return an empty node */
+    if (TIMEDIFF > 0.9 * remTime) {
+        Node result;
+        return result;
+    }
     /**
      * One side needs to pass; move to next layer down
      * One side passes after another passed; game over, find score.
@@ -234,6 +239,16 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
                 test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 0);
+
+                /* TIME CUTOFF - just return an empty node */
+                if (TIMEDIFF > 0.9 * remTime) {
+                    delete curr;
+                    b->undoMove(testmove, side);
+                    turnCount -= 1;
+                    Node result;
+                    return result;
+                }
+
                 int testscore = test.getScore();
 
                 if (testscore > best) {
@@ -269,6 +284,16 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
                 test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 0);
+
+                /* TIME CUTOFF - just return an empty node */
+                if (TIMEDIFF > 0.9 * remTime) {
+                    delete curr;
+                    b->undoMove(testmove, side);
+                    turnCount -= 1;
+                    Node result;
+                    return result;
+                }
+
                 int testscore = test.getScore();
 
                 if (testscore < best) {
@@ -306,11 +331,15 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
  */
 Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* START TIME */
-    const long double startTime = 1000 * time(0);
+    startTime = 1000 * time(0);
 
     /* For testing purposes, don't want longer than 10 sec */
     if (msLeft == -1) {
         msLeft = TTIME;
+        remTime = TTIME;
+    }
+    else {
+        remTime = msLeft - TIMEDIFF;
     }
 
     /* Update board with opponent's move */
@@ -337,12 +366,17 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     }
     else if (iterativeDeepening) {
         int depth = STARTDEPTH;
+        Node test;
         do {
-/*            fprintf(stderr, "Depth reached: %d\n", depth);*/
-            best = alphaBeta(gameBoard, 0, depth, -100000, 100000, us, 0);
+            fprintf(stderr, "Depth reached: %d\n", depth);
+            test = alphaBeta(gameBoard, 0, depth, -100000, 100000, us, 0);
+            /* Make sure that the last input gave a valid result */
+            if (test.getSingleMove().getX() != -1) {
+                best = test;
+            }
             depth += 2;
-/*            fprintf(stderr, "Time difference: %f\n", 1000 * time(0) - startTime);*/
-        } while ((((1000 * time(0)) - startTime) < (0.5 * msLeft)) && (depth <= 60));
+            std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
+        } while ((TIMEDIFF < 0.5 * remTime) && (depth <= 60)); //Will get a better iterative standard at some point
     }
     else {
         best = alphaBeta(gameBoard, 0, MAXDEPTH, -100000, 100000, us, 0);
