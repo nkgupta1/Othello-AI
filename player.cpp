@@ -8,6 +8,7 @@
 Player::Player(Side side) {
     // Will be set to true in test_minimax.cpp.
     testingMinimax = false;
+    turnCount = 0;
     gameBoard = new Board();
     us = side;
     them = (us == WHITE) ? BLACK : WHITE;
@@ -47,10 +48,16 @@ Move *Player::simpleHeuristic() {
 /**
  * Calculates score from heuristic table
  */
-int Player::scoreFunction(Board *b) {
+int Player::scoreFunction(Board *b, int win) {
     int score;
     int whitescore = 0;
     int blackscore = 0;
+
+    /* Both players can only pass => someone won */
+    if (win == 1) {
+        return simpleScoreFunction(b);
+    }
+
     for (unsigned int i = 0; i < 64; i++) {
         if (b->getPiece(i) == 'b') {
             blackscore += heuristic[i];
@@ -70,10 +77,24 @@ int Player::scoreFunction(Board *b) {
  * Simple difference of sqaures.
  * Arbitrarily large/small amounts for winning/losing
  */
-int simpleScoreFunction(Board *b, Side side) {
-    int score = (side == WHITE)   ? b->countWhite() - b->countBlack()
+int Player::simpleScoreFunction(Board *b) {
+    int score = (us == WHITE)   ? b->countWhite() - b->countBlack()
                                   : b->countBlack() - b->countWhite();
-    if (side == WHITE) {
+
+    /* Game is over; let's see who won */
+    if (turnCount == 60) {
+        if ((us == WHITE) && (score > 0)) {
+            return 10000;
+        }
+        else if ((us == BLACK) && (score < 0)) {
+            return 10000;
+        }
+        else {
+            return -10000;
+        }
+    }
+
+    if (us == WHITE) {
         if (b->countWhite() == 0) {
             return -10000;
         }
@@ -81,12 +102,12 @@ int simpleScoreFunction(Board *b, Side side) {
             return 10000;
         }
     }
-    else if (side == BLACK) {
+    else if (us == BLACK) {
         if (b->countWhite() == 0) {
-            return 20000;
+            return 10000;
         }
         else if (b->countBlack() == 0) {
-            return -20000;
+            return -10000;
         }
     } 
     return score;
@@ -98,9 +119,9 @@ int simpleScoreFunction(Board *b, Side side) {
 Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
     if ((depth == enddepth) || (!b->hasMoves(side))) {
         if (testingMinimax) {
-            return Node(simpleScoreFunction(b, us));
+            return Node(simpleScoreFunction(b));
         }
-        return Node(scoreFunction(b));
+        return Node(scoreFunction(b, 0));
     }
 
     if (side == us) {
@@ -111,8 +132,10 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
             Move *curr = new Move(i % N, i / N);
             Node test;
             if (b->checkMove(curr, side)) {
+
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
+                turnCount += 1;
                 test = minimax(b, depth + 1, enddepth, switchSide(side));
                 int testscore = test.getScore();
 
@@ -122,6 +145,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
                     bestMove.setY(curr->getY());
                 }
                 b->undoMove(testmove, side);
+                turnCount -= 1;
             }
             delete curr;
         }
@@ -141,6 +165,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
 
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
+                turnCount += 1;
                 test = minimax(b, depth + 1, enddepth, switchSide(side));
                 int testscore = test.getScore();
 
@@ -150,6 +175,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
                     bestMove.setY(curr->getY());
                 }
                 b->undoMove(testmove, side);
+                turnCount -= 1;
             }
             delete curr;
         }
@@ -162,13 +188,36 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
 /**
  * Minimax with alpha-beta pruning. Even better.
  */
-Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side) {
+Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass) {
     // fprintf(stderr, "Nonsense! Depth of %d, enddepth of %d\n", depth, enddepth);
-    if ((depth == enddepth) || (!b->hasMoves(side))) {
-        if (testingMinimax) {
-            return Node(simpleScoreFunction(b, us));
+
+    /**
+     * One side needs to pass; move to next layer down
+     * One side passes after another passed; game over, find score.
+     * This is done even if means going below depth; wins/losses
+     * are important.
+     */
+/*    if (!b->hasMoves(side)) {
+        if (pass == 0) {
+            Node result;
+            result = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 1); //TEST, USUALLY 1
+            return result;
         }
-        return Node(scoreFunction(b));
+        else if (pass == 1) {
+            fprintf(stderr, "Game OVER!\n");
+            return Node(scoreFunction(b, 1));
+        }
+    }*/
+
+    if (b->isDone()) {
+        return Node(scoreFunction(b, 1));
+    }
+
+    if (depth >= enddepth) {
+        if (testingMinimax) {
+            return Node(simpleScoreFunction(b));
+        }
+        return Node(scoreFunction(b, 0));
     }
 
     if (side == us) {
@@ -179,9 +228,11 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
             Move *curr = new Move(i % N, i / N);
             Node test;
             if (b->checkMove(curr, side)) {
+
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
-                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side));
+                turnCount += 1;
+                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 0);
                 int testscore = test.getScore();
 
                 if (testscore > best) {
@@ -190,6 +241,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                     bestMove.setY(curr->getY());
                 }
                 b->undoMove(testmove, side);
+                turnCount -= 1;
 
                 alpha = max(alpha, best); // Does this work?
             }
@@ -211,9 +263,11 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
             Move *curr = new Move(i % N, i / N);
             Node test;
             if (b->checkMove(curr, side)) {
+
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
-                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side));
+                turnCount += 1;
+                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 0);
                 int testscore = test.getScore();
 
                 if (testscore < best) {
@@ -222,6 +276,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                     bestMove.setY(curr->getY());
                 }
                 b->undoMove(testmove, side);
+                turnCount -= 1;
 
                 beta = min(best, best); //Or this too?
             }
@@ -254,6 +309,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* Update board with opponent's move */
     gameBoard->doMove(opponentsMove, them);
 
+    /* Opponent made a valid move, 1/60 squares taken */
+    if (opponentsMove != NULL) {
+        turnCount += 1;
+    }
+
     /* Update heuristics to be more accurate */
     updateHeuristics(gameBoard, heuristic); 
 
@@ -269,7 +329,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         best = minimax(gameBoard, 0, TESTDEPTH, us);
     }
     else {
-        best = alphaBeta(gameBoard, 0, MAXDEPTH, -10000, 10000, us);
+        best = alphaBeta(gameBoard, 0, MAXDEPTH, -10000, 10000, us, 0);
     }
 
     heuristicMove = new Move(best.getSingleMove().getX(), best.getSingleMove().getY());
@@ -285,5 +345,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* Update board with our move */
     gameBoard->doMove(heuristicMove, us);
 
+    /* We made a valid move, took 1/60 squares */
+    if (heuristicMove != NULL) {
+        turnCount += 1;
+    }
+
+    fprintf(stderr, "Turncount: %d\n", turnCount);
     return heuristicMove;
 }

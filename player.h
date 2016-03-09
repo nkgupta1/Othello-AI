@@ -10,7 +10,7 @@
 #define XY(i, j) (i + 8 * j)
 #define N         8
 #define TESTDEPTH 2
-#define MAXDEPTH  7
+#define MAXDEPTH  6
 #define TIME      960000
 
 using namespace std;
@@ -21,11 +21,14 @@ public:
     Player(Side side);
     ~Player();
 
+    int turnCount;
+
     Move *simpleHeuristic();
     Node minimax(Board *b, int depth, int enddepth, Side side);
-    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side);
+    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass);
     Move *doMove(Move *opponentsMove, int msLeft);
-    int scoreFunction(Board *b);
+    int scoreFunction(Board *b, int win);
+    int simpleScoreFunction(Board *b);
     void updateHeuristics(Board *b, int scoreMap[64]);
 
     // Flag to tell if the player is running within the test_minimax context
