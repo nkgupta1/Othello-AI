@@ -388,6 +388,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     if (!gameBoard->checkMove(heuristicMove, us)) {
         fprintf(stderr, "Oopsies!\n");
         std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
+        /* If not, default to legal random move */
         heuristicMove = simpleHeuristic();
     }
 
