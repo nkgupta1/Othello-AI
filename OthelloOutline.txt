@@ -1,5 +1,14 @@
 Board object:
 
+Algorithmic objectives:
+    opening book
+    interative deepening
+    recursive minimax
+    updating heuristic
+    iterative minimax
+    transposition table
+
+
 Currently has copy method; probably more memory efficient to just use one board.
 Would require creating an undo move method, which would require the board to keep
 track of which moves have been made. Would really help with space, though.
@@ -8,8 +17,6 @@ Might be able to remove a few methods, booleans. For instance, does Board really
 need to have isDone? Can't it just return NULL if no moves found?
 
 player.cpp:
-
-Start timer; we get constant 30 seconds, so #define that at top of cpp.
 
 Going to have an opening book, so will need a hash function somewhere.
 First thing to do is check if board state is in has function. If so, return
