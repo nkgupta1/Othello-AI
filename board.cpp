@@ -35,8 +35,6 @@ bool Board::occupied(int x, int y) {
 }
 
 bool Board::get(Side2 side, int x, int y) {
-    // fprintf(stderr, "x:%d y:%d\n", x, y);
-
     return occupied(x, y) && isEqual(black[x + 8*y], isBlack(side));
 }
 
@@ -218,7 +216,6 @@ vector<Move> Board::doMove(Move *m, Side2 side) {
     int X = m->getX();
     int Y = m->getY();
     Side2 other = switchSide2(side);
-    // fprintf(stderr, "get:%d\n", get(other, 3, 3));
     for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
             if (dy == 0 && dx == 0) continue;
