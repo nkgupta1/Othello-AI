@@ -1,5 +1,6 @@
 CC          = g++
-CFLAGS      = -Wall -ansi -pedantic -ggdb -std=c++11 -O1
+OPTIMIZE    = -O1
+CFLAGS      = -Wall -ansi -pedantic -ggdb -std=c++11
 OBJS        = player.o board.o
 PLAYERNAME  = TheBreakfastClub
 

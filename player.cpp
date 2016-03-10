@@ -13,8 +13,8 @@ Player::Player(Side side) {
     iterativeDeepening = false;
     turnCount = 0;
     gameBoard = new Board();
-    us = side;
-    them = (us == WHITE) ? BLACK : WHITE;
+    us = (side == BLACK);
+    them = ~us;
 }
 
 /*
@@ -70,7 +70,7 @@ int Player::scoreFunction(Board *b, int win) {
         }
     }
     score = whitescore - blackscore;
-    if (us == WHITE) {
+    if (isWhite(us)) {
         return score;
     }
     return -1 * score;
@@ -81,7 +81,7 @@ int Player::scoreFunction(Board *b, int win) {
  * Arbitrarily large/small amounts for winning/losing
  */
 int Player::simpleScoreFunction(Board *b) {
-    int score = (us == WHITE)   ? b->countWhite() - b->countBlack()
+    int score = (isWhite(us))   ? b->countWhite() - b->countBlack()
                                 : b->countBlack() - b->countWhite();
 
     /**
@@ -90,10 +90,10 @@ int Player::simpleScoreFunction(Board *b) {
      * overwhelming victories/closer defeats.
      */
     if (turnCount == 60) {
-        if ((us == WHITE) && (score > 0)) {
+        if ((isWhite(us)) && (score > 0)) {
             return 9000 + score;
         }
-        else if ((us == BLACK) && (score < 0)) {
+        else if ((isBlack(us)) && (score < 0)) {
             return 9000 + score;
         }
         else {
@@ -101,7 +101,7 @@ int Player::simpleScoreFunction(Board *b) {
         }
     }
 
-    if (us == WHITE) {
+    if (isWhite(us)) {
         if (b->countWhite() == 0) {
             return -9000 + score;
         }
@@ -109,7 +109,7 @@ int Player::simpleScoreFunction(Board *b) {
             return 9000 + score;
         }
     }
-    else if (us == BLACK) {
+    else if (isBlack(us)) {
         if (b->countWhite() == 0) {
             return 9000 + score;
         }
@@ -123,7 +123,7 @@ int Player::simpleScoreFunction(Board *b) {
 /**
  * Incorporates the minimax algorithm.
  */
-Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
+Node Player::minimax(Board *b, int depth, int enddepth, Side2 side) {
     if ((depth == enddepth) || (!b->hasMoves(side))) {
         if (testingMinimax) {
             return Node(simpleScoreFunction(b));
@@ -131,7 +131,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
         return Node(scoreFunction(b, 0));
     }
 
-    if (side == us) {
+    if (isEqual(side, us)) {
         Node result;
         Move bestMove;
         int best = -10000;
@@ -143,7 +143,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
-                test = minimax(b, depth + 1, enddepth, switchSide(side));
+                test = minimax(b, depth + 1, enddepth, switchSide2(side));
                 int testscore = test.getScore();
 
                 if (testscore > best) {
@@ -173,7 +173,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
-                test = minimax(b, depth + 1, enddepth, switchSide(side));
+                test = minimax(b, depth + 1, enddepth, switchSide2(side));
                 int testscore = test.getScore();
 
                 if (testscore < best) {
@@ -195,7 +195,7 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side side) {
 /**
  * Minimax with alpha-beta pruning. Even better.
  */
-Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass) {
+Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side2 side, int pass) {
 
     /* TIME CUTOFF - just return an empty node */
     if (TIMEDIFF > 0.9 * remTime) {
@@ -211,7 +211,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
     if (!b->hasMoves(side)) {
         if (pass == 0) {
             Node result;
-            result = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 1);
+            result = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 1);
             return result;
         }
         else if (pass == 1) {
@@ -226,7 +226,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         return Node(scoreFunction(b, 0));
     }
 
-    if (side == us) {
+    if (isEqual(us, side)) {
         Node result;
         Move bestMove;
         int best = -10000;
@@ -238,7 +238,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
-                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 0);
+                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 0);
 
                 /* TIME CUTOFF - just return an empty node */
                 if (TIMEDIFF > 0.9 * remTime) {
@@ -283,7 +283,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 vector<Move> testmove;
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
-                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide(side), 0);
+                test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 0);
 
                 /* TIME CUTOFF - just return an empty node */
                 if (TIMEDIFF > 0.9 * remTime) {

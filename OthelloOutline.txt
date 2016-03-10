@@ -8,7 +8,7 @@ Algorithmic objectives:
     iterative minimax
     transposition table
     change g++ flag
-
+    bitwise
 
 Currently has copy method; probably more memory efficient to just use one board.
 Would require creating an undo move method, which would require the board to keep

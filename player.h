@@ -30,8 +30,8 @@ public:
     long double remTime = time(0);
 
     Move *simpleHeuristic();
-    Node minimax(Board *b, int depth, int enddepth, Side side);
-    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass);
+    Node minimax(Board *b, int depth, int enddepth, Side2 side);
+    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side2 side, int pass);
     Move *doMove(Move *opponentsMove, int msLeft);
     int scoreFunction(Board *b, int win);
     int simpleScoreFunction(Board *b);
@@ -42,8 +42,8 @@ public:
     // Temporary bool to test iterative deepening capabilities
     bool iterativeDeepening;
     Board *gameBoard;
-    Side us;
-    Side them;
+    Side2 us;
+    Side2 them;
     int heuristic[64] = {  1000,  50, 100, 100, 100, 100,  50, 1000, 
                              50, -40, -10, -10, -10, -10, -40,   50,
                             100, -10,  -1,  -1,  -1,  -1, -10,  100,

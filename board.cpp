@@ -34,13 +34,13 @@ bool Board::occupied(int x, int y) {
     return taken[x + 8*y];
 }
 
-bool Board::get(Side side, int x, int y) {
-    return occupied(x, y) && (black[x + 8*y] == (side == BLACK));
+bool Board::get(Side2 side, int x, int y) {
+    return occupied(x, y) && isEqual(black[x + 8*y], isBlack(side));
 }
 
-void Board::set(Side side, int x, int y) {
+void Board::set(Side2 side, int x, int y) {
     taken.set(x + 8*y);
-    black.set(x + 8*y, side == BLACK);
+    black.set(x + 8*y, isBlack(side));
 }
 
 bool Board::onBoard(int x, int y) {
@@ -59,7 +59,7 @@ bool Board::isDone() {
 /*
  * Returns true if there are legal moves for the given side.
  */
-bool Board::hasMoves(Side side) {
+bool Board::hasMoves(Side2 side) {
     for (int i = 0; i < 8; i++) {
         for (int j = 0; j < 8; j++) {
             Move move(i, j);
@@ -72,7 +72,7 @@ bool Board::hasMoves(Side side) {
 /*
  * Returns true if a move is legal for the given side; false otherwise.
  */
-bool Board::checkMove(Move *m, Side side) {
+bool Board::checkMove(Move *m, Side2 side) {
     // Passing is only legal if you have no moves.
     if (m == NULL) return !hasMoves(side);
 
@@ -82,17 +82,17 @@ bool Board::checkMove(Move *m, Side side) {
     // Make sure the square hasn't already been taken.
     if (occupied(X, Y)) return false;
 
-    Side other = switchSide(side);
+    Side2 other = switchSide2(side);
     int x = X-1;
     int y = Y;
     bool flipped = 0;
-    // check up
+    // check left
     while (x > 0 && get(other, x, y)) {
         x--;
         flipped = 1;
     } 
     if (get(side, x, y) && flipped) return true;
-    // check down
+    // check right
     x = X+1;
     y = Y;
     flipped = 0;
@@ -101,7 +101,7 @@ bool Board::checkMove(Move *m, Side side) {
         flipped = 1;
     } 
     if (get(side, x, y) && flipped) return true;
-    // check left
+    // check up
     x = X;
     y = Y-1;
     flipped = 0;
@@ -110,7 +110,7 @@ bool Board::checkMove(Move *m, Side side) {
         flipped = 1;
     } 
     if (get(side, x, y) && flipped) return true;
-    // check right
+    // check down
     x = X;
     y = Y+1;
     flipped = 0;
@@ -200,7 +200,7 @@ bool Board::checkMoveOrg(Move *m, Side side) {
 /*
  * Modifies the board to reflect the specified move.
  */
-vector<Move> Board::doMove(Move *m, Side side) {
+vector<Move> Board::doMove(Move *m, Side2 side) {
     vector<Move> res;    
     // A NULL move means pass.
     if (m == NULL) return res;
@@ -214,7 +214,7 @@ vector<Move> Board::doMove(Move *m, Side side) {
 
     int X = m->getX();
     int Y = m->getY();
-    Side other = switchSide(side);
+    Side2 other = switchSide2(side);
     for (int dx = -1; dx <= 1; dx++) {
         for (int dy = -1; dy <= 1; dy++) {
             if (dy == 0 && dx == 0) continue;
@@ -248,7 +248,7 @@ vector<Move> Board::doMove(Move *m, Side side) {
     return res;
 }
 
-void Board::undoMove(vector<Move> moves, Side side) {
+void Board::undoMove(vector<Move> moves, Side2 side) {
     if (moves.size() == 0)
     {
         return;
@@ -262,7 +262,7 @@ void Board::undoMove(vector<Move> moves, Side side) {
         return;
     }
 
-    Side flipside = switchSide(side);
+    Side2 flipside = switchSide2(side);
     for (unsigned int i = 1; i < moves.size(); i++)
     {
         set(flipside, moves[i].getX(), moves[i].getY());
@@ -272,8 +272,8 @@ void Board::undoMove(vector<Move> moves, Side side) {
 /*
  * Current count of given side's stones.
  */
-int Board::count(Side side) {
-    return switchSide(side);
+int Board::count(Side2 side) {
+    return (isBlack(side))? countBlack() : countWhite();
 }
 
 /*

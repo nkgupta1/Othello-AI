@@ -14,8 +14,8 @@ private:
     bitset<64> taken;    
        
     bool occupied(int x, int y);
-    bool get(Side side, int x, int y);
-    void set(Side side, int x, int y);
+    bool get(Side2 side, int x, int y);
+    void set(Side2 side, int x, int y);
     bool onBoard(int x, int y);
       
 public:
@@ -24,12 +24,12 @@ public:
     Board *copy();
         
     bool isDone();
-    bool hasMoves(Side side);
-    bool checkMove(Move *m, Side side);
+    bool hasMoves(Side2 side);
+    bool checkMove(Move *m, Side2 side);
     bool checkMoveOrg(Move *m, Side side);
-    vector<Move> doMove(Move *m, Side side);
-    void undoMove(vector<Move> moves, Side side);
-    int count(Side side);
+    vector<Move> doMove(Move *m, Side2 side);
+    void undoMove(vector<Move> moves, Side2 side);
+    int count(Side2 side);
     int countBlack();
     int countWhite();
     char getPiece(int i);

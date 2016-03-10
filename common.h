@@ -17,6 +17,14 @@
    }
 #define printMove(m) \
    fprintf(stderr, "X: %d Y: %d\n", m->getX(), m->getY());
+// bitwise stuff
+#define BLACK2 1
+#define WHITE2 0
+#define Side2  bool
+#define isBlack(s)  (s)
+#define isWhite(s) (!s)
+#define isEqual(s1, s2) (!(s1 ^ s2))
+#define switchSide2(s) (!s)
 
 enum Side { 
     WHITE, BLACK
