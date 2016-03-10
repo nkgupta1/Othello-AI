@@ -10,7 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = true;
+    iterativeDeepening = false;
 
     // Temporary for MTD(f)
     mtd = false;
@@ -18,7 +18,7 @@ Player::Player(Side side) {
     turnCount = 1;
     gameBoard = new Board();
     us = (side == BLACK);
-    them = ~us;
+    them = switchSide2(us);
 }
 
 /*
