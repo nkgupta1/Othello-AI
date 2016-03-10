@@ -10,8 +10,12 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = false;
-    turnCount = 0;
+    iterativeDeepening = true;
+
+    // Temporary for MTD(f)
+    mtd = false;
+
+    turnCount = 1;
     gameBoard = new Board();
     us = (side == BLACK);
     them = ~us;
@@ -28,24 +32,29 @@ void Player::updateHeuristics(Board *b, int scoreMap[64]) {
     /* Nikhil, you want to do this one? */
 }
 
-/* Calculates the best available move at 1-ply */
-Move *Player::simpleHeuristic() {
-    Move *bestMove =  new Move(0, 0);
-    Move *m = new Move(0, 0);
-
-    int best = -100; /* Lower value than present in heuristic */
-    for (int i = 0; i < 64; i++) {
-        m->setX(i % N);
-        m->setY(i / N);
-        if ((gameBoard->checkMove(m, us) == true)  &&
-            (heuristic[i] > best)) {
-                best = heuristic[i];
-                bestMove->setX(i % N);
-                bestMove->setY(i / N);
-            }
+long double Player::timeAllocator(bool oppMove, int msLeft) {
+    if (msLeft == -1) {
+        /* No time limit */
+        return TTIME;
     }
-    delete m;
-    return bestMove;
+    else if (oppMove == false) {
+        /* Opponent passed; probably not too many moves we have to think through */
+        return min(20000, (msLeft / 4));
+    }
+    else {
+        /* We have 30 planned turns; factor tells us which it is. */
+        int turnFactor = (turnCount + 1) / 2;
+        double turnMultiplier;
+        /* Last turns don't take long at all. */
+        if (turnFactor < 25) {
+            turnMultiplier = 1;
+        }
+        else {
+            turnMultiplier = pow(0.75, 30 - turnFactor);
+        }
+        int turnTime = 1000 * (0.6 * turnFactor + 24) * turnMultiplier;
+        return min(turnTime, msLeft / 4);
+    }
 }
 
 /**
@@ -89,11 +98,11 @@ int Player::simpleScoreFunction(Board *b) {
      * '+ score' is so that AI emphasizes
      * overwhelming victories/closer defeats.
      */
-    if (turnCount == 60) {
-        if ((isWhite(us)) && (score > 0)) {
+    if (turnCount >= 60) {
+        if ((us == WHITE) && (score > 0)) {
             return 9000 + score;
         }
-        else if ((isBlack(us)) && (score < 0)) {
+        else if ((us == BLACK) && (score > 0)) {
             return 9000 + score;
         }
         else {
@@ -118,6 +127,26 @@ int Player::simpleScoreFunction(Board *b) {
         }
     } 
     return score;
+}
+
+/* Calculates the best available move at 1-ply */
+Move *Player::simpleHeuristic() {
+    Move *bestMove =  new Move(0, 0);
+    Move *m = new Move(0, 0);
+
+    int best = -100; /* Lower value than present in heuristic */
+    for (int i = 0; i < 64; i++) {
+        m->setX(i % N);
+        m->setY(i / N);
+        if ((gameBoard->checkMove(m, us) == true)  &&
+            (heuristic[i] > best)) {
+                best = heuristic[i];
+                bestMove->setX(i % N);
+                bestMove->setY(i / N);
+            }
+    }
+    delete m;
+    return bestMove;
 }
 
 /**
@@ -197,6 +226,14 @@ Node Player::minimax(Board *b, int depth, int enddepth, Side2 side) {
  */
 Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side2 side, int pass) {
 
+    /* At some point, good idea to implement a transposition table: */
+
+    // if (mtd) {
+    //     addToTable
+    //}
+
+    /* (Before every return statement except the time one) */
+
     /* TIME CUTOFF - just return an empty node */
     if (TIMEDIFF > 0.9 * remTime) {
         Node result;
@@ -262,7 +299,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 alpha = max(alpha, best);
             }
             delete curr;
-            if (beta <= alpha) {
+            if (beta <= alpha) { /* Beta cutoff : fail-high */
                 break;
             }
         }
@@ -307,7 +344,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 beta = min(best, best);
             }
             delete curr;
-            if (beta <= alpha) {
+            if (beta <= alpha) { /*Alpha cutoff : fail-low */
                 break;
             }
         }
@@ -315,6 +352,40 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         result.setScore(best);
         return result;
     }
+}
+
+/**
+ * Implementation of MTD(F), fastest known minimax algorithm
+ * Need to implement a transposition table before it'll really work, though
+ */
+Node Player::MTDF(Board *b, int enddepth, int bound) {
+    Node best;
+    int currBound = bound;
+    int upperBound = 1000000;
+    int lowerBound = -1000000;
+    while (1) {
+        Node test;
+        int beta = (currBound == lowerBound) ? currBound + 1 : currBound;
+        test = alphaBeta(b, 0, enddepth, beta - 1, beta, us, 0);
+        currBound = test.getScore();
+        if (currBound < beta) {
+            upperBound = currBound;
+        }
+        else {
+            lowerBound = currBound;
+        }
+
+        if (lowerBound >= upperBound) {
+            best = test;
+            break;
+        }
+
+        if (TIMEDIFF > 0.9 * remTime) {
+            Node result;
+            return result;
+        }
+    }
+    return best;
 }
 
 /*
@@ -333,22 +404,32 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* START TIME */
     startTime = 1000 * time(0);
 
-    /* For testing purposes, don't want longer than 10 sec */
-    if (msLeft == -1) {
-        msLeft = TTIME;
-        remTime = TTIME;
-    }
-    else {
-        remTime = msLeft - TIMEDIFF;
-    }
-
     /* Update board with opponent's move */
     gameBoard->doMove(opponentsMove, them);
 
-    /* Opponent made a valid move, 1/60 squares taken */
+    /* Update the turn counter */
     if (opponentsMove != NULL) {
         turnCount += 1;
     }
+
+    /* If move isn't null, then update */
+    bool oppMove = true;
+    turnCount += 1;
+    /* But, if move is null... */
+    if (opponentsMove == NULL) {
+        /*...Stil at same turn. Have to allocate extra time for unexpected turn. */
+        turnCount -= 1;
+        oppMove = false;
+        /* Except for case where game just started, that's okay */
+        if (turnCount == 1) {
+            oppMove = true;
+        }
+    }
+
+
+    /* For testing purposes, don't want longer than 10 sec */
+    /* Not quite working yet */
+    remTime = timeAllocator(oppMove, msLeft);
 
     /* Update heuristics to be more accurate */
     updateHeuristics(gameBoard, heuristic); 
@@ -376,7 +457,25 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
             }
             depth += 2;
             std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
-        } while ((TIMEDIFF < 0.5 * remTime) && (depth <= 60)); //Will get a better iterative standard at some point
+        } while ((TIMEDIFF < 0.5 * remTime) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
+    }
+    else if (mtd) {
+        int depth = STARTDEPTH;
+        int startValue = 0;
+        Node test;
+        do { /* Please make sure to set up a transposition table */
+            // fprintf(stderr, "Depth reached: %d\n", depth);
+            test = MTDF(gameBoard, depth, startValue);
+            /* Make sure that the last input gave a valid result */
+            if (test.getSingleMove().getX() != -1) {
+                best = test;
+                startValue = test.getScore();
+                // fprintf(stderr, "Current startValue: %d\n", startValue);
+            }
+            depth += 2;
+            // std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
+        } while ((TIMEDIFF < 0.5 * remTime) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
+
     }
     else {
         best = alphaBeta(gameBoard, 0, MAXDEPTH, -100000, 100000, us, 0);
@@ -386,8 +485,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     /* Make sure that move is legal */
     if (!gameBoard->checkMove(heuristicMove, us)) {
-        fprintf(stderr, "Oopsies!\n");
-        std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
+        // fprintf(stderr, "Oopsies!\n");
+        // std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
         /* If not, default to legal best 1-ply move */
         heuristicMove = simpleHeuristic();
     }
