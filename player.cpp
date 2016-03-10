@@ -10,7 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = false;
+    iterativeDeepening = true;
 
     // Temporary for MTD(f)
     mtd = false;
@@ -99,10 +99,10 @@ int Player::simpleScoreFunction(Board *b) {
      * overwhelming victories/closer defeats.
      */
     if (turnCount >= 60) {
-        if ((us == WHITE) && (score > 0)) {
+        if (isWhite(us) && (score > 0)) {
             return 9000 + score;
         }
-        else if ((us == BLACK) && (score > 0)) {
+        else if (isBlack(us) && (score > 0)) {
             return 9000 + score;
         }
         else {
@@ -428,7 +428,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
 
     /* For testing purposes, don't want longer than 10 sec */
-    /* Not quite working yet */
     remTime = timeAllocator(oppMove, msLeft);
 
     /* Update heuristics to be more accurate */
