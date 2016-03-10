@@ -7,6 +7,7 @@
 #include "Node.h"
 #include <vector>
 #include <ctime>
+#include <cmath>
 
 #define XY(i, j)   (i + 8 * j)
 #define TIMEDIFF   (1000 * time(0) - startTime)
@@ -29,18 +30,26 @@ public:
     long double startTime = time(0);
     long double remTime = time(0);
 
-    Move *simpleHeuristic();
-    Node minimax(Board *b, int depth, int enddepth, Side side);
-    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass);
-    Move *doMove(Move *opponentsMove, int msLeft);
+    void updateHeuristics(Board *b, int scoreMap[64]);
+    long double timeAllocator(bool oppMove, int msLeft);
+
     int scoreFunction(Board *b, int win);
     int simpleScoreFunction(Board *b);
-    void updateHeuristics(Board *b, int scoreMap[64]);
+
+    Move *simpleHeuristic();   
+    Node minimax(Board *b, int depth, int enddepth, Side side);
+    Node alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, Side side, int pass);
+    Node MTDF(Board *b, int enddepth, int bound);
+    Move *doMove(Move *opponentsMove, int msLeft);
+
 
     // Flag to tell if the player is running within the test_minimax context
     bool testingMinimax;
     // Temporary bool to test iterative deepening capabilities
     bool iterativeDeepening;
+    // Temporary bool for MTD(f) algorithm
+    bool mtd;
+
     Board *gameBoard;
     Side us;
     Side them;
