@@ -8,6 +8,7 @@
 #include <vector>
 #include <ctime>
 #include <cmath>
+#include <stdio.h>
 
 #define XY(i, j)   (i + 8 * j)
 #define TIMEDIFF   (1000 * time(0) - startTime)
@@ -35,6 +36,8 @@ public:
     void updateHeuristicsBL      (Board *b, int scoreMap[64], bool ourUpdate);
     void updateHeuristicsBR      (Board *b, int scoreMap[64], bool ourUpdate);
     void updateHeuristicsMiddleRC(Board *b, int scoreMap[64], bool ourUpdate);
+
+    void appendToFile(FILE* f, bitset<128> toAppend);
 
     long double timeAllocator(bool oppMove, int msLeft);
 
@@ -66,6 +69,7 @@ public:
                             100, -10,  -1,  -1,  -1,  -1, -10,  100,
                              50, -40, -10, -10, -10, -10, -40,   50,
                            1000,  50, 100, 100, 100, 100,  50, 1000};
+    FILE *f;
 };
 
 #endif

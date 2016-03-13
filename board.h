@@ -22,6 +22,8 @@ public:
     Board();
     ~Board();
     Board *copy();
+
+    bitset<128> naiveHash();
         
     bool isDone();
     bool hasMoves(Side2 side);

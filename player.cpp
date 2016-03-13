@@ -15,6 +15,9 @@ Player::Player(Side side) {
     // Temporary for MTD(f)
     mtd = false;
 
+    // For file operations
+    f = fopen("test.txt", "wa");
+
     turnCount = 1;
     gameBoard = new Board();
     us = (side == BLACK);
@@ -26,6 +29,7 @@ Player::Player(Side side) {
  */
 Player::~Player() {
     delete gameBoard;
+    fclose(f);
 }
 
 void Player::updateHeuristicsTL(Board *b, int scoreMap[64], bool ourUpdate) {
@@ -683,4 +687,17 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     }
 
     return heuristicMove;
+}
+
+void appendToFile(FILE* f, bitset<128> toAppend) {
+    char c = 0;
+    for (int i = 0; i < 128; i++) {
+        c += toAppend[i];
+        c = c<<1;
+        if (i % 8 == 7) {
+            fprintf(f, "%c", c);
+            c = 0;
+        }
+    }
+    fprintf(f, "\n");
 }

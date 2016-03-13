@@ -313,3 +313,12 @@ char Board::getPiece(int i) {
     if (black[i] & 1) return 'b';
     else return 'w';
 }
+
+bitset<128> Board::naiveHash() {
+    bitset<128> toReturn;
+    for (int i = 0; i < 64; i++) {
+        toReturn.set(2*i  , taken[i]);
+        toReturn.set(2*i+1, black[i]);
+    }
+    return toReturn;
+}
