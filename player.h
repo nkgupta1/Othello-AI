@@ -30,7 +30,12 @@ public:
     long double startTime = time(0);
     long double remTime = time(0);
 
-    void updateHeuristics(Board *b, int scoreMap[64]);
+    void updateHeuristicsTL      (Board *b, int scoreMap[64], bool ourUpdate);
+    void updateHeuristicsTR      (Board *b, int scoreMap[64], bool ourUpdate);
+    void updateHeuristicsBL      (Board *b, int scoreMap[64], bool ourUpdate);
+    void updateHeuristicsBR      (Board *b, int scoreMap[64], bool ourUpdate);
+    void updateHeuristicsMiddleRC(Board *b, int scoreMap[64], bool ourUpdate);
+
     long double timeAllocator(bool oppMove, int msLeft);
 
     int scoreFunction(Board *b, int win);

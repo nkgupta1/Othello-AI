@@ -10,7 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = true;
+    iterativeDeepening = false;
 
     // Temporary for MTD(f)
     mtd = false;
@@ -28,8 +28,177 @@ Player::~Player() {
     delete gameBoard;
 }
 
-void Player::updateHeuristics(Board *b, int scoreMap[64]) {
-    /* Nikhil, you want to do this one? */
+void Player::updateHeuristicsTL(Board *b, int scoreMap[64], bool ourUpdate) {
+    if (us == BLACK) {
+        // if opponent has ul corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(2,0)) != 'w') scoreMap[XY(1,0)] = -50;
+            if (b->getPiece(XY(0,2)) != 'w') scoreMap[XY(0,1)] = -50;
+            scoreMap[XY(1,1)] = -50;
+        }
+        // if we have ul corner
+        if (ourUpdate) {
+            scoreMap[XY(0,1)] = 150;
+            scoreMap[XY(1,0)] = 150;
+            scoreMap[XY(1,1)] = 100;
+        }
+    }
+    else {
+        // if opponent has ul corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(2,0)) != 'b') scoreMap[XY(1,0)] = -50;
+            if (b->getPiece(XY(0,2)) != 'b') scoreMap[XY(0,1)] = -50;
+            scoreMap[XY(1,1)] = -50;
+        }
+        // if we have ul corner
+        if (ourUpdate) {
+            scoreMap[XY(0,1)] = 150;
+            scoreMap[XY(1,0)] = 150;
+            scoreMap[XY(1,1)] = 100;
+        }
+    }
+}
+void Player::updateHeuristicsTR(Board *b, int scoreMap[64], bool ourUpdate) {
+    if (us == BLACK) {
+        // if opponent has ur corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(5,0)) != 'w') scoreMap[XY(6,0)] = -50;
+            if (b->getPiece(XY(7,2)) != 'w') scoreMap[XY(7,1)] = -50;
+            scoreMap[XY(6,1)] = -50;
+        }
+        // if we have ur corner
+        if (ourUpdate) {
+            scoreMap[XY(6,0)] = 150;
+            scoreMap[XY(7,1)] = 150;
+            scoreMap[XY(6,1)] = 100;
+        }
+    }
+    else {
+        // if opponent has ur corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(5,0)) != 'b') scoreMap[XY(6,0)] = -50;
+            if (b->getPiece(XY(7,2)) != 'b') scoreMap[XY(7,1)] = -50;
+            scoreMap[XY(6,1)] = -50;
+        }
+        // if we have ur corner
+        if (ourUpdate) {
+            scoreMap[XY(6,0)] = 150;
+            scoreMap[XY(7,1)] = 150;
+            scoreMap[XY(6,1)] = 100;
+        }
+    }
+}
+void Player::updateHeuristicsBL(Board *b, int scoreMap[64], bool ourUpdate) {
+    if (us == BLACK) {
+        // if opponent has bl corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(0,5)) != 'w') scoreMap[XY(0,6)] = -50;
+            if (b->getPiece(XY(2,7)) != 'w') scoreMap[XY(1,7)] = -50;
+            scoreMap[XY(1,6)] = -50;
+        }
+        // if we have bl corner
+        if (ourUpdate) {
+            scoreMap[XY(6,0)] = 150;
+            scoreMap[XY(1,7)] = 150;
+            scoreMap[XY(1,6)] = 100;
+        }
+    }
+    else {
+        // if opponent has bl corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(0,5)) != 'b') scoreMap[XY(0,6)] = -50;
+            if (b->getPiece(XY(2,7)) != 'b') scoreMap[XY(1,7)] = -50;
+            scoreMap[XY(1,6)] = -50;
+        }
+        // if we have bl corner
+        if (ourUpdate) {
+            scoreMap[XY(6,0)] = 150;
+            scoreMap[XY(1,7)] = 150;
+            scoreMap[XY(1,6)] = 100;
+        }
+
+    }
+}
+void Player::updateHeuristicsBR(Board *b, int scoreMap[64], bool ourUpdate) {
+    if (us == BLACK) {
+        // if opponent has br corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(5,7)) != 'w') scoreMap[XY(6,7)] = -50;
+            if (b->getPiece(XY(7,5)) != 'w') scoreMap[XY(7,6)] = -50;
+            scoreMap[XY(6,6)] = -50;
+        }
+        // if we have br corner
+        if (ourUpdate) {
+            scoreMap[XY(7,6)] = 150;
+            scoreMap[XY(6,7)] = 150;
+            scoreMap[XY(6,6)] = 100;
+        }
+    }
+    else {
+        // if opponent has br corner
+        if (!ourUpdate) {
+            if (b->getPiece(XY(5,7)) != 'b') scoreMap[XY(6,7)] = -50;
+            if (b->getPiece(XY(7,5)) != 'b') scoreMap[XY(7,6)] = -50;
+            scoreMap[XY(6,6)] = -50;
+        }
+        // if we have br corner
+        if (ourUpdate) {
+            scoreMap[XY(7,6)] = 150;
+            scoreMap[XY(6,7)] = 150;
+            scoreMap[XY(6,6)] = 100;
+        }
+    }
+}
+
+void Player::updateHeuristicsMiddleRC(Board *b, int scoreMap[64], bool ourUpdate) {
+    if (us == BLACK && ourUpdate) {
+        for (int i = 2; i < 6; i++) {
+            // Top row
+            if (b->getPiece(XY(i, 0)) == 'b') scoreMap[XY(i, 1)] = 20;
+            // Bottom row
+            if (b->getPiece(XY(i, 7)) == 'b') scoreMap[XY(i, 6)] = 20;
+            // Left colum
+            if (b->getPiece(XY(0, i)) == 'b') scoreMap[XY(1, i)] = 20;
+            // Right column
+            if (b->getPiece(XY(7, i)) == 'b') scoreMap[XY(6, i)] = 20;
+        }
+    }
+    else if (us == BLACK && !ourUpdate) {
+        for (int i = 2; i < 6; i++) {
+            // Top row
+            if (b->getPiece(XY(i, 0)) == 'w') scoreMap[XY(i, 1)] = -10;
+            // Bottom row
+            if (b->getPiece(XY(i, 7)) == 'w') scoreMap[XY(i, 6)] = -10;
+            // Left colum
+            if (b->getPiece(XY(0, i)) == 'w') scoreMap[XY(1, i)] = -10;
+            // Right column
+            if (b->getPiece(XY(7, i)) == 'w') scoreMap[XY(6, i)] = -10;
+        }
+    }
+    else if (us != BLACK && ourUpdate) {
+        for (int i = 2; i < 6; i++) {
+            // Top row
+            if (b->getPiece(XY(i, 0)) == 'w') scoreMap[XY(i, 1)] = 20;
+            // Bottom row
+            if (b->getPiece(XY(i, 7)) == 'w') scoreMap[XY(i, 6)] = 20;
+            // Left colum
+            if (b->getPiece(XY(0, i)) == 'w') scoreMap[XY(1, i)] = 20;
+            // Right column
+            if (b->getPiece(XY(7, i)) == 'w') scoreMap[XY(6, i)] = 20;
+        }
+    }
+    else if (us != BLACK && !ourUpdate) {
+        for (int i = 2; i < 6; i++) {
+            // Top row
+            if (b->getPiece(XY(i, 0)) == 'b') scoreMap[XY(i, 1)] = -10;
+            // Bottom row
+            if (b->getPiece(XY(i, 7)) == 'b') scoreMap[XY(i, 6)] = -10;
+            // Left colum
+            if (b->getPiece(XY(0, i)) == 'b') scoreMap[XY(1, i)] = -10;
+            // Right column
+            if (b->getPiece(XY(7, i)) == 'b') scoreMap[XY(6, i)] = -10;
+        }
+    }
 }
 
 long double Player::timeAllocator(bool oppMove, int msLeft) {
@@ -430,8 +599,16 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* For testing purposes, don't want longer than 10 sec */
     remTime = timeAllocator(oppMove, msLeft);
 
-    /* Update heuristics to be more accurate */
-    updateHeuristics(gameBoard, heuristic); 
+    if (opponentsMove != NULL) {
+        /* Update heuristics to be more accurate */
+        int x = opponentsMove->getX();
+        int y = opponentsMove->getY();
+        if      (x == 0 && y == 0) updateHeuristicsTL(gameBoard, heuristic, 0); 
+        else if (x == 7 && y == 0) updateHeuristicsTR(gameBoard, heuristic, 0);
+        else if (x == 0 && y == 7) updateHeuristicsBL(gameBoard, heuristic, 0);
+        else if (x == 7 && y == 7) updateHeuristicsBR(gameBoard, heuristic, 0);
+        updateHeuristicsMiddleRC(gameBoard, heuristic, 0);
+    }
 
     /* No legal moves to make */
     if (gameBoard->hasMoves(us) == false) {
@@ -496,6 +673,13 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* We made a valid move, took 1/60 squares */
     if (heuristicMove != NULL) {
         turnCount += 1;
+        int x = heuristicMove->getX();
+        int y = heuristicMove->getY();
+        if      (x == 0 && y == 0) updateHeuristicsTL(gameBoard, heuristic, 1); 
+        else if (x == 7 && y == 0) updateHeuristicsTR(gameBoard, heuristic, 1);
+        else if (x == 0 && y == 7) updateHeuristicsBL(gameBoard, heuristic, 1);
+        else if (x == 7 && y == 7) updateHeuristicsBR(gameBoard, heuristic, 1);
+        updateHeuristicsMiddleRC(gameBoard, heuristic, 1);
     }
 
     return heuristicMove;
