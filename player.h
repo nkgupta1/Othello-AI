@@ -9,6 +9,7 @@
 #include <ctime>
 #include <cmath>
 #include <stdio.h>
+#include <unordered_map>
 
 #define XY(i, j)   (i + 8 * j)
 #define TIMEDIFF   (1000 * time(0) - startTime)
@@ -18,7 +19,7 @@
 #define STARTDEPTH 3
 #define MAXDEPTH   5
 #define TIME       960000
-#define TTIME      5000
+#define TTIME      1000
 
 using namespace std;
 
@@ -74,6 +75,7 @@ public:
                              50, -40, -10, -10, -10, -10, -40,   50,
                            1000,  50, 100, 100, 100, 100,  50, 1000};
     FILE *f;
+    unordered_map<string, int> transposTable;
 };
 
 #endif

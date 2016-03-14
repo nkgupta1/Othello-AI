@@ -35,6 +35,7 @@ public:
     int countBlack();
     int countWhite();
     char getPiece(int i);
+    string toHashString();
 
     void setBoard(char data[]);
 };

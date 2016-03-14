@@ -322,3 +322,23 @@ bitset<128> Board::naiveHash() {
     }
     return toReturn;
 }
+
+string Board::toHashString() {
+    bitset<128> toString;
+    for (int i = 0; i < 64; i++) {
+        toString.set((2*i)%128  , taken[i]);
+        toString.set((2*i+1)%128, black[i]);
+    }
+    string s;
+    char c = 0;
+    for (int i = 0; i < 128; i++) {
+        c += (int)(toString[i]);
+        c = c << 1;
+        if (i % 8 == 7) {
+            s += c;
+            c = 0;
+        }
+    }
+
+    return s;
+}

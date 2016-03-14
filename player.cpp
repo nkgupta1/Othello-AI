@@ -21,6 +21,7 @@ Player::Player(Side side) {
     turnCount = 1;
     timeCutoff = 0;
     mostRecentTime = 0;
+    excessTime = 0;
     gameBoard = new Board();
     us = (side == BLACK);
     them = switchSide2(us);
@@ -410,10 +411,10 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
     /* At some point, good idea to implement a transposition table: */
 
     // if (mtd) {
-    //     addToTable
-    //}
-
-    /* (Before every return statement except the time one) */
+    //     if (transposTable.count(b->toHashString())) {
+    //         return Node(transposTable[b->toHashString()]);
+    //     }
+    // }
 
     /* TIME CUTOFF - just return an empty node */
     if (((timeCutoff == 1) || (!TIMECONT)) && ((depth == (enddepth - 2)) || (depth == enddepth))) {
@@ -422,7 +423,9 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         if (depth == 1) {
             fprintf(stderr, "Cutoff activated.\n");
         }
-        return Node(scoreFunction(b, 0));
+        int toRet = scoreFunction(b, 0);
+        // if (depth > 0) transposTable[b->toHashString()] = toRet;
+        return Node(toRet);
     }
     else if (TIMEDIFF > remTime) {
         /* Fail-safe; if time is greater than time alloted, need to get out */
@@ -439,10 +442,13 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         if (pass == 0) {
             Node result;
             result = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 1);
+            // if (depth > 0) transposTable[b->toHashString()] = result.getScore();
             return result;
         }
         else if (pass == 1) {
-            return Node(scoreFunction(b, 1));
+            int toRet = scoreFunction(b, 1);
+            // if (depth > 0) transposTable[b->toHashString()] = toRet;
+            return Node(toRet);
         }
     }
 
@@ -450,7 +456,9 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         if (testingMinimax) {
             return Node(simpleScoreFunction(b));
         }
-        return Node(scoreFunction(b, 0));
+        int toRet = scoreFunction(b, 0);
+        // if (depth > 0) transposTable[b->toHashString()] = toRet;
+        return Node(toRet);
     }
 
     if (isEqual(us, side)) {
@@ -466,15 +474,6 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
                 test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 0);
-
-                /* TIME CUTOFF - just return an empty node */
-                // if (TIMEDIFF > 0.9 * remTime) {
-                //     delete curr;
-                //     b->undoMove(testmove, side);
-                //     turnCount -= 1;
-                //     Node result;
-                //     return result;
-                // }
 
                 int testscore = test.getScore();
 
@@ -495,6 +494,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         }
         result.setSingleMove(bestMove);
         result.setScore(best);
+        // if (depth > 0) transposTable[b->toHashString()] = result.getScore();
         return result;
     }
 
@@ -511,15 +511,6 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 testmove = b->doMove(curr, side);
                 turnCount += 1;
                 test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 0);
-
-                /* TIME CUTOFF - just return an empty node */
-                // if (TIMEDIFF > 0.9 * remTime) {
-                //     delete curr;
-                //     b->undoMove(testmove, side);
-                //     turnCount -= 1;
-                //     Node result;
-                //     return result;
-                // }
 
                 int testscore = test.getScore();
 
@@ -540,6 +531,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
         }
         result.setSingleMove(bestMove);
         result.setScore(best);
+        // if (depth > 0) transposTable[b->toHashString()] = result.getScore();
         return result;
     }
 }
@@ -570,7 +562,7 @@ Node Player::MTDF(Board *b, int enddepth, int bound) {
             break;
         }
 
-        if (TIMEDIFF > 0.9 * remTime) {
+        if (timeCutoff == 1) {
             Node result;
             return result;
         }
@@ -596,11 +588,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     /* Update board with opponent's move */
     gameBoard->doMove(opponentsMove, them);
-
-    /* Update the turn counter */
-    // if (opponentsMove != NULL) {
-    //     turnCount += 1;
-    // }
 
     /* If move isn't null, then update */
     bool oppMove = true;
@@ -661,9 +648,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     else if (mtd) {
         int depth = STARTDEPTH;
         int startValue = 0;
+        mostRecentTime = 0;
+        timeCutoff = 0;
         Node test;
         do { /* Please make sure to set up a transposition table */
-            // fprintf(stderr, "Depth reached: %d\n", depth);
+            fprintf(stderr, "Depth reached: %d\n", depth);
             test = MTDF(gameBoard, depth, startValue);
             /* Make sure that the last input gave a valid result */
             if (test.getSingleMove().getX() != -1) {
@@ -672,8 +661,11 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
                 // fprintf(stderr, "Current startValue: %d\n", startValue);
             }
             depth += 2;
+            transposTable.clear();
+            std::cerr << "Score: " << best.getScore() << std::endl;
+            mostRecentTime = TIMEDIFF;
             // std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
-        } while ((TIMEDIFF < 0.5 * remTime) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
+        } while ((TIMECONT) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
     }
     else {
         best = alphaBeta(gameBoard, 0, MAXDEPTH, -100000, 100000, us, 0);
@@ -707,6 +699,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     /* Save any extra time */
     excessTime += (remTime - TIMEDIFF);
     fprintf(stderr, "Excess Time: %d\n", excessTime);
+
+    transposTable.clear();
 
     return heuristicMove;
 }
