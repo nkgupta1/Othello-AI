@@ -12,12 +12,13 @@
 
 #define XY(i, j)   (i + 8 * j)
 #define TIMEDIFF   (1000 * time(0) - startTime)
+#define TIMECONT   ((int) ((remTime - TIMEDIFF) > mostRecentTime))
 #define N          8
 #define TESTDEPTH  2
 #define STARTDEPTH 3
 #define MAXDEPTH   5
 #define TIME       960000
-#define TTIME      3000
+#define TTIME      5000
 
 using namespace std;
 
@@ -28,6 +29,9 @@ public:
     ~Player();
 
     int turnCount;
+    int timeCutoff;
+    int mostRecentTime;
+    int excessTime;
     long double startTime = time(0);
     long double remTime = time(0);
 

@@ -19,6 +19,8 @@ Player::Player(Side side) {
     f = fopen("test.txt", "wa");
 
     turnCount = 1;
+    timeCutoff = 0;
+    mostRecentTime = 0;
     gameBoard = new Board();
     us = (side == BLACK);
     them = switchSide2(us);
@@ -217,6 +219,7 @@ long double Player::timeAllocator(bool oppMove, int msLeft) {
     else {
         /* We have 30 planned turns; factor tells us which it is. */
         int turnFactor = (turnCount + 1) / 2;
+        int extraTime = 0;
         double turnMultiplier;
         /* Last turns don't take long at all. */
         if (turnFactor < 25) {
@@ -225,7 +228,12 @@ long double Player::timeAllocator(bool oppMove, int msLeft) {
         else {
             turnMultiplier = pow(0.75, 30 - turnFactor);
         }
-        int turnTime = 1000 * (0.6 * turnFactor + 24) * turnMultiplier;
+        if (turnFactor < 25) {
+            extraTime = excessTime / (25 - turnFactor);
+        }
+        fprintf(stderr, "Extra Time used: %d\n", extraTime);
+        int turnTime = 1000 * (0.6 * turnFactor + 24) * turnMultiplier + extraTime;
+        fprintf(stderr, "Time allocated: %d\n", turnTime);
         return min(turnTime, msLeft / 4);
     }
 }
@@ -408,10 +416,19 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
     /* (Before every return statement except the time one) */
 
     /* TIME CUTOFF - just return an empty node */
-    if (TIMEDIFF > 0.9 * remTime) {
-        Node result;
-        return result;
+    if (((timeCutoff == 1) || (!TIMECONT)) && ((depth == (enddepth - 2)) || (depth == enddepth))) {
+        // fprintf(stderr, "t");
+        timeCutoff = 1;
+        if (depth == 1) {
+            fprintf(stderr, "Cutoff activated.\n");
+        }
+        return Node(scoreFunction(b, 0));
     }
+    else if (TIMEDIFF > remTime) {
+        /* Fail-safe; if time is greater than time alloted, need to get out */
+        timeCutoff = 1;
+    }
+
     /**
      * One side needs to pass; move to next layer down
      * One side passes after another passed; game over, find score.
@@ -451,13 +468,13 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 0);
 
                 /* TIME CUTOFF - just return an empty node */
-                if (TIMEDIFF > 0.9 * remTime) {
-                    delete curr;
-                    b->undoMove(testmove, side);
-                    turnCount -= 1;
-                    Node result;
-                    return result;
-                }
+                // if (TIMEDIFF > 0.9 * remTime) {
+                //     delete curr;
+                //     b->undoMove(testmove, side);
+                //     turnCount -= 1;
+                //     Node result;
+                //     return result;
+                // }
 
                 int testscore = test.getScore();
 
@@ -496,13 +513,13 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 test = alphaBeta(b, depth + 1, enddepth, alpha, beta, switchSide2(side), 0);
 
                 /* TIME CUTOFF - just return an empty node */
-                if (TIMEDIFF > 0.9 * remTime) {
-                    delete curr;
-                    b->undoMove(testmove, side);
-                    turnCount -= 1;
-                    Node result;
-                    return result;
-                }
+                // if (TIMEDIFF > 0.9 * remTime) {
+                //     delete curr;
+                //     b->undoMove(testmove, side);
+                //     turnCount -= 1;
+                //     Node result;
+                //     return result;
+                // }
 
                 int testscore = test.getScore();
 
@@ -627,16 +644,19 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     else if (iterativeDeepening) {
         int depth = STARTDEPTH;
         Node test;
+        mostRecentTime = 0;
+        timeCutoff = 0;
         do {
             fprintf(stderr, "Depth reached: %d\n", depth);
             test = alphaBeta(gameBoard, 0, depth, -100000, 100000, us, 0);
             /* Make sure that the last input gave a valid result */
-            if (test.getSingleMove().getX() != -1) {
+            // if (test.getSingleMove().getX() != -1) {
                 best = test;
-            }
+            // }
             depth += 2;
-            std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
-        } while ((TIMEDIFF < 0.5 * remTime) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
+            std::cerr << "Time difference: " << (int) 1000 * time(0) - startTime << std::endl;
+            mostRecentTime = TIMEDIFF/* - mostRecentTime*/;
+        } while ((TIMECONT) && ((turnCount + depth) <= 62));
     }
     else if (mtd) {
         int depth = STARTDEPTH;
@@ -654,7 +674,6 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
             depth += 2;
             // std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
         } while ((TIMEDIFF < 0.5 * remTime) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
-
     }
     else {
         best = alphaBeta(gameBoard, 0, MAXDEPTH, -100000, 100000, us, 0);
@@ -664,8 +683,8 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
 
     /* Make sure that move is legal */
     if (!gameBoard->checkMove(heuristicMove, us)) {
-        // fprintf(stderr, "Oopsies!\n");
-        // std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
+        fprintf(stderr, "Oopsies!\n");
+        std::cerr << "X: " << heuristicMove->getX() << " Y: " << heuristicMove->getY() << std::endl;
         /* If not, default to legal best 1-ply move */
         heuristicMove = simpleHeuristic();
     }
@@ -684,6 +703,10 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         else if (x == 7 && y == 7) updateHeuristicsBR(gameBoard, heuristic, 1);
         updateHeuristicsMiddleRC(gameBoard, heuristic, 1);
     }
+
+    /* Save any extra time */
+    excessTime += (remTime - TIMEDIFF);
+    fprintf(stderr, "Excess Time: %d\n", excessTime);
 
     return heuristicMove;
 }
