@@ -10,7 +10,7 @@ Player::Player(Side side) {
     testingMinimax = false;
 
     // Temporary measure right now for testing
-    iterativeDeepening = false;
+    iterativeDeepening = true;
 
     // Temporary for MTD(f)
     mtd = false;
@@ -585,23 +585,24 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
         turnCount += 1;
     }
 
-    /* If move isn't null, then update */
-    bool oppMove = true;
-    turnCount += 1;
-    /* But, if move is null... */
-    if (opponentsMove == NULL) {
-        /*...Stil at same turn. Have to allocate extra time for unexpected turn. */
-        turnCount -= 1;
-        oppMove = false;
-        /* Except for case where game just started, that's okay */
-        if (turnCount == 1) {
-            oppMove = true;
-        }
-    }
+    // /* If move isn't null, then update */
+    // bool oppMove = true;
+    // turnCount += 1;
+    // /* But, if move is null... */
+    // if (opponentsMove == NULL) {
+    //     ...Stil at same turn. Have to allocate extra time for unexpected turn. 
+    //     turnCount -= 1;
+    //     oppMove = false;
+    //     /* Except for case where game just started, that's okay */
+    //     if (turnCount == 1) {
+    //         oppMove = true;
+    //     }
+    // }
 
 
     /* For testing purposes, don't want longer than 10 sec */
-    remTime = timeAllocator(oppMove, msLeft);
+    // remTime = timeAllocator(oppMove, msLeft);
+    remTime = TTIME;
 
     if (opponentsMove != NULL) {
         /* Update heuristics to be more accurate */
