@@ -19,7 +19,7 @@
 #define STARTDEPTH 3
 #define MAXDEPTH   5
 #define TIME       960000
-#define TTIME      1000
+#define TTIME      10000
 
 using namespace std;
 

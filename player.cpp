@@ -659,10 +659,10 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
                 best = test;
                 startValue = test.getScore();
                 // fprintf(stderr, "Current startValue: %d\n", startValue);
+                std::cerr << "Score: " << best.getScore() << std::endl;
             }
             depth += 2;
             transposTable.clear();
-            std::cerr << "Score: " << best.getScore() << std::endl;
             mostRecentTime = TIMEDIFF;
             // std::cerr << "Time difference: " << 1000 * time(0) - startTime << std::endl;
         } while ((TIMECONT) && ((turnCount + depth) <= 62)); //Will get a better iterative standard at some point
@@ -700,7 +700,7 @@ Move *Player::doMove(Move *opponentsMove, int msLeft) {
     excessTime += (remTime - TIMEDIFF);
     fprintf(stderr, "Excess Time: %d\n", excessTime);
 
-    transposTable.clear();
+    // transposTable.clear();
 
     return heuristicMove;
 }
