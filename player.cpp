@@ -522,7 +522,7 @@ Node Player::alphaBeta(Board *b, int depth, int enddepth, int alpha, int beta, S
                 b->undoMove(testmove, side);
                 turnCount -= 1;
 
-                beta = min(best, best);
+                beta = min(beta, best);
             }
             delete curr;
             if (beta <= alpha) { /*Alpha cutoff : fail-low */
